@@ -19,22 +19,22 @@ public:
         return (strncmp((const char*)res->e_ident, ELFMAG, SELFMAG) == 0) ? res : nullptr;
     }
 
-    static const ELF_PHDR_T* findPHDR(const ELF_EHDR_T* ehdr, int type);
+    static const ELF_PHDR_T* findPHDR(const ELF_EHDR_T* ehdr, uint32_t type);
 
     static const ELF_DYN_T* findDynTAB(const ELF_EHDR_T* ehdr, const ELF_PHDR_T* phdr, int type);
 
-    static void printMaps();
+//    static void printMaps();
 
-    static void printEHDR(const ELF_EHDR_T* ehdr);
+//    static void printEHDR(const ELF_EHDR_T* ehdr);
 
-    static void printPHDR(const ELF_PHDR_T* phdr);
+//    static void printPHDR(const ELF_PHDR_T* phdr);
 
-    static void printDynTAB(const ELF_DYN_T* dyn);
+//    static void printDynTAB(const ELF_DYN_T* dyn);
 
-    static void printSymTAB(const ELF_SYM_T* sym);
+//    static void printSymTAB(const ELF_SYM_T* sym);
 
-    static void printRelTAB(const ELF_REL_T* rel);
-    static void printRelaTAB(const ELF_RELA_T* rela);
+//    static void printRelTAB(const ELF_REL_T* rel);
+//    static void printRelaTAB(const ELF_RELA_T* rela);
 };
 
 #endif // __ELFUTILS_H__

@@ -26,8 +26,7 @@ ElfMem::ElfSo::ElfSo(const void* base_addr)
 
 //    off_t off = m_ehdr->e_type == ET_DYN ? (off_t)m_ehdr : 0;
 
-    const ELF_PHDR_T* load = ElfUtils::findPHDR(m_ehdr, PT_LOAD);
-
+//    const ELF_PHDR_T* load = ElfUtils::findPHDR(m_ehdr, PT_LOAD);
 
     m_phdr = ElfUtils::findPHDR(m_ehdr, PT_DYNAMIC);
     if (!m_phdr) {
@@ -68,13 +67,13 @@ const void* ElfMem::ElfSo::hookRel(const char* proc_name, const void* subst_addr
     assert(proc_name);
     assert(subst_addr);
 
-    LOGD("Try to hook proc '%s' in '%s'", proc_name, m_name);
+    LOG_D("Try to hook proc '%s' in '%s'", proc_name, m_name);
 
     const ELF_DYN_T* jmprel = ElfUtils::findDynTAB(m_ehdr, m_phdr, DT_JMPREL);
     const ELF_DYN_T* pltrelsz = ElfUtils::findDynTAB(m_ehdr, m_phdr, DT_PLTRELSZ);
     if (jmprel && pltrelsz) {
-        ElfUtils::printDynTAB(jmprel);
-        ElfUtils::printDynTAB(pltrelsz);
+//        ElfUtils::printDynTAB(jmprel);
+//        ElfUtils::printDynTAB(pltrelsz);
         res = (m_reltype == DT_REL) ?
               hookRelTab((const ELF_REL_T*)jmprel->d_un.d_ptr, pltrelsz->d_un.d_val / sizeof(ELF_REL_T),
                          R_X86_64_JUMP_SLOT, proc_name, subst_addr) :
@@ -92,11 +91,11 @@ const void* ElfMem::ElfSo::hookRel(const char* proc_name, const void* subst_addr
 //                         R_X86_64_JUMP_SLOT, proc_name, subst_addr);
 
     } else {
-        LOGD("DT_JMPREL(DT_PLTRELSZ) table is missing!");
+        LOG_D("DT_JMPREL(DT_PLTRELSZ) table is missing!");
     }
 
     if (res) {
-        LOGD("'%s' in '%s' HOOKED!", proc_name, m_name);
+        LOG_D("'%s' in '%s' HOOKED!", proc_name, m_name);
     }
 
     return res;
@@ -109,7 +108,7 @@ bool ElfMem::ElfSo::hookSym(const char* proc_name, const void* subst_addr) const
     assert(proc_name);
     assert(subst_addr);
 
-    LOGD("Try to hook proc '%s' in '%s'", proc_name, m_name);
+    LOG_D("Try to hook proc '%s' in '%s'", proc_name, m_name);
 
     for(ELF_SYM_T* sym = (ELF_SYM_T*)m_symbols; CHECK_SYM_ATTR(sym->st_info); sym++)
     {
@@ -124,7 +123,7 @@ bool ElfMem::ElfSo::hookSym(const char* proc_name, const void* subst_addr) const
     }
 
     if (res) {
-        LOGD("'%s' in '%s' HOOKED!", proc_name, m_name);
+        LOG_D("'%s' in '%s' HOOKED!", proc_name, m_name);
     }
 
     return res;
@@ -179,8 +178,8 @@ bool ElfMem::ElfSo::rewriteProc(void* proc_addr, const void* subst_addr) const
 
 ElfMem::ElfMem()
 {
-    LOGD("Mahine : %d, MachineType : %d, EncodingType : %d", getMachine(), getMachineType(), getEncodingType());
-    ElfUtils::printMaps();
+    LOG_D("Mahine : %d, MachineType : %d, EncodingType : %d", getMachine(), getMachineType(), getEncodingType());
+//    ElfUtils::printMaps();
     makeSoList();
 }
 
@@ -235,24 +234,20 @@ void ElfMem::makeSoList()
             if(strstr(buf, "r-xp") == 0)
                 continue;
 
+#ifdef __x86_64
             if (sscanf(buf, "%lx-%lx %*s %*s %*s %*s %s", &beg, &end, buf) == 3) {
-
+#else
+            if (sscanf(buf, "%x-%x %*s %*s %*s %*s %s", &beg, &end, buf) == 3) {
+#endif
                 if(strstr(buf, ".so") == 0)
                     continue;
 
-
-
-//                if(strstr(buf, "libTEST_LIB.so") == 0)
-//                    continue;
-
-
-
-                LOGD("Shared object %s was found at %p", buf, (void*)beg);
+                LOG_D("Shared object %s was found at %p", buf, (void*)beg);
 
                 try {
                     m_solist.emplace_back(ElfSo{(const void*)beg});
                 } catch (const exception& e) {
-                    LOGD("Could not create shared : %s", e.what());
+                    LOG_D("Could not create shared : %s", e.what());
                 }
             }
         }

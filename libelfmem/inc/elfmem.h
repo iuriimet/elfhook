@@ -29,7 +29,7 @@ class ElfMem
     private:
 
         template <typename RELT>
-        const void* hookRelTab(const RELT* reltab, int relcnt, int reltype,
+        const void* hookRelTab(const RELT* reltab, int relcnt, uint64_t reltype,
                                const char* proc_name, const void* subst_addr) const {
             assert(reltab);
             assert(proc_name);
@@ -48,8 +48,9 @@ class ElfMem
 
                 if (strcmp((const char*)(m_strings + sym->st_name), proc_name) == 0) {
                     off_t off = m_ehdr->e_type == ET_DYN ? (off_t)m_ehdr : 0;
-                    res = (const void*)(off + reltab->r_offset);
-                    *(uintptr_t*)(res) = (uintptr_t)subst_addr;
+                    const void* ptr = (const void*)(off + reltab->r_offset);
+                    res = (const void*)(*(uintptr_t*)(ptr));
+                    *(uintptr_t*)(ptr) = (uintptr_t)subst_addr;
                 }
             }
 
