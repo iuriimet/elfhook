@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <elf.h>
-#include <assert.h>
+// #include <assert.h>
 
 #include "elfmem_def.h"
 
@@ -14,7 +14,7 @@ public:
     static const ELF_EHDR_T* findEHDR(const void* addr);
 
     static inline const ELF_EHDR_T* getEHDR(const void* addr) {
-        assert(addr);
+        // assert(addr);
         const ELF_EHDR_T* res = (const ELF_EHDR_T*)addr;
         return (strncmp((const char*)res->e_ident, ELFMAG, SELFMAG) == 0) ? res : nullptr;
     }

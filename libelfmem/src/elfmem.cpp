@@ -6,7 +6,7 @@
 #include <sys/mman.h>
 #include <algorithm>
 #include <stdexcept>
-#include <assert.h>
+// #include <assert.h>
 
 #include "elfmem_def.h"
 #include "elfmem.h"
@@ -17,7 +17,7 @@ using namespace std;
 
 ElfMem::ElfSo::ElfSo(const void* base_addr)
 {
-    assert(base_addr);
+    // assert(base_addr);
 
     m_ehdr = ElfUtils::findEHDR((const void*)base_addr);
     if (!m_ehdr || m_ehdr->e_type != ET_DYN) {
@@ -64,8 +64,8 @@ const void* ElfMem::ElfSo::hookRel(const char* proc_name, const void* subst_addr
 {
     const void* res = nullptr;
 
-    assert(proc_name);
-    assert(subst_addr);
+    // assert(proc_name);
+    // assert(subst_addr);
 
     LOG_D("Try to hook proc '%s' in '%s'", proc_name, m_name);
 
@@ -105,8 +105,8 @@ bool ElfMem::ElfSo::hookSym(const char* proc_name, const void* subst_addr) const
 {
     bool res = false;
 
-    assert(proc_name);
-    assert(subst_addr);
+    // assert(proc_name);
+    // assert(subst_addr);
 
     LOG_D("Try to hook proc '%s' in '%s'", proc_name, m_name);
 
@@ -201,9 +201,9 @@ EncodingType ElfMem::getEncodingType()
 
 const void* ElfMem::soHookRel(const char* so_name, const char* proc_name, const void* subst_addr) const
 {
-    assert(so_name);
-    assert(proc_name);
-    assert(subst_addr);
+    // assert(so_name);
+    // assert(proc_name);
+    // assert(subst_addr);
     auto it = std::find_if(m_solist.begin(), m_solist.end(),
                            [so_name](const ElfSo& so){return (strstr(so.getName(), so_name) != nullptr);});
     return (it != m_solist.cend()) ? it->hookRel(proc_name, subst_addr) : nullptr;
@@ -211,9 +211,9 @@ const void* ElfMem::soHookRel(const char* so_name, const char* proc_name, const 
 
 bool ElfMem::soHookSym(const char* so_name, const char* proc_name, const void* subst_addr) const
 {
-    assert(so_name);
-    assert(proc_name);
-    assert(subst_addr);
+    // assert(so_name);
+    // assert(proc_name);
+    // assert(subst_addr);
     auto it = std::find_if(m_solist.cbegin(), m_solist.cend(),
                            [so_name](const ElfSo& so){return (strstr(so.getName(), so_name) != nullptr);});
     return (it != m_solist.cend()) ? it->hookSym(proc_name, subst_addr) : false;

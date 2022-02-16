@@ -4,7 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <elf.h>
-#include <assert.h>
+// #include <assert.h>
 
 #include "elfmem_def.h"
 #include "elfutils.h"
@@ -12,7 +12,7 @@
 
 const ELF_EHDR_T* ElfUtils::findEHDR(const void* addr)
 {
-    assert(addr);
+    // assert(addr);
     int psize = getpagesize();
     uintptr_t res = (uintptr_t)addr & (UINTPTR_MAX^(psize-1));
     for( ; !getEHDR((const void*)res); res-=psize);
@@ -21,7 +21,7 @@ const ELF_EHDR_T* ElfUtils::findEHDR(const void* addr)
 
 const ELF_PHDR_T* ElfUtils::findPHDR(const ELF_EHDR_T* ehdr, uint32_t type)
 {
-    assert(ehdr);
+    // assert(ehdr);
     const ELF_PHDR_T* res = (const ELF_PHDR_T*)((uintptr_t)ehdr + ehdr->e_phoff);
     for(int n = ehdr->e_phnum; n > 0 && res->p_type != type; n--, res++);
     return (res->p_type == type) ? res : nullptr;
@@ -29,8 +29,8 @@ const ELF_PHDR_T* ElfUtils::findPHDR(const ELF_EHDR_T* ehdr, uint32_t type)
 
 const ELF_DYN_T* ElfUtils::findDynTAB(const ELF_EHDR_T* ehdr, const ELF_PHDR_T* phdr, int type)
 {
-    assert(ehdr);
-    assert(phdr);
+    // assert(ehdr);
+    // assert(phdr);
     off_t off = ehdr->e_type == ET_DYN ? (off_t)ehdr : 0;
     const ELF_DYN_T* res = (const ELF_DYN_T*)(off + phdr->p_vaddr);
     for( ; res->d_tag != type && res->d_tag != DT_NULL; res++);

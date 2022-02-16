@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <list>
-#include <assert.h>
+// #include <assert.h>
 
 #include "elfmem_def.h"
 
@@ -31,9 +31,9 @@ class ElfMem
         template <typename RELT>
         const void* hookRelTab(const RELT* reltab, int relcnt, uint64_t reltype,
                                const char* proc_name, const void* subst_addr) const {
-            assert(reltab);
-            assert(proc_name);
-            assert(subst_addr);
+            // assert(reltab);
+            // assert(proc_name);
+            // assert(subst_addr);
 
             const void* res = nullptr;
 
