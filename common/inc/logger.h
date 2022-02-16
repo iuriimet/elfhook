@@ -31,14 +31,14 @@ static const char* TAG = "ELFHOOK";
 #include <string.h>
 
 #define LOG_D(M, ...) \
-        fprintf(stdout, "[%s:%d] " M "\n", strrchr(__FILE__, '/') > 0 ? strrchr(__FILE__, '/') + 1 : __FILE__ , __LINE__, ##__VA_ARGS__); \
+        fprintf(stdout, "[%s:%d] " M "\n", strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__ , __LINE__, ##__VA_ARGS__); \
         fflush(stdout);
 #define LOG_I(M, ...) \
-        fprintf(stdout, "[%s:%d] " M "\n", strrchr(__FILE__, '/') > 0 ? strrchr(__FILE__, '/') + 1 : __FILE__ , __LINE__, ##__VA_ARGS__);
+        fprintf(stdout, "[%s:%d] " M "\n", strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__ , __LINE__, ##__VA_ARGS__);
 #define LOG_W(M, ...) \
-        fprintf(stdout, "[%s:%d] " M "\n", strrchr(__FILE__, '/') > 0 ? strrchr(__FILE__, '/') + 1 : __FILE__ , __LINE__, ##__VA_ARGS__);
+        fprintf(stdout, "[%s:%d] " M "\n", strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__ , __LINE__, ##__VA_ARGS__);
 #define LOG_E(M, ...) \
-        fprintf(stderr, "[%s:%d] " M " %s\n", strrchr(__FILE__, '/') > 0 ? strrchr(__FILE__, '/') + 1 : __FILE__ , __LINE__, ##__VA_ARGS__, strerror(errno));
+        fprintf(stderr, "[%s:%d] " M " %s\n", strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__ , __LINE__, ##__VA_ARGS__, strerror(errno));
 
 #endif
 
