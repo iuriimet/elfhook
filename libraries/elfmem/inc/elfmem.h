@@ -10,6 +10,8 @@
 
 #include "elfmem_def.h"
 
+namespace ns_elfmem {
+
 class ElfMem
 {
     class ElfSo
@@ -87,5 +89,7 @@ private:
 
     std::list<ElfSo> m_solist;
 };
+
+} // namespace ns_elfmem
 
 #endif // __ELFMEM_H__

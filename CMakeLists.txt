@@ -1,64 +1,50 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+cmake_minimum_required(VERSION 3.15)
 
-SET (PROJECT_ROOT ${CMAKE_CURRENT_LIST_DIR})
-SET(CMAKE_VERBOSE_MAKEFILE ON)
+project("elfhook"
+    VERSION 0.0.1
+    DESCRIPTION "ElfHook Project"
+)
 
-IF(NOT CMAKE_BUILD_TYPE)
-    SET(CMAKE_BUILD_TYPE "RELEASE")
-ENDIF(NOT CMAKE_BUILD_TYPE)
-
-IF(${CMAKE_BUILD_TYPE} STREQUAL "RELEASE")
-    SET(FORTITY_OPTIONS_COMPILER "-fstack-protector-strong -Wl,-z,relro -D_FORTIFY_SOURCE=2 -fPIE")
-    SET(FORTITY_OPTIONS_LINKER "-pie")
-ELSE()
-    SET(FORTITY_OPTIONS_COMPILER " ")
-    SET(FORTITY_OPTIONS_LINKER " ")
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wp,-U_FORTIFY_SOURCE")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wp,-U_FORTIFY_SOURCE")
-ENDIF()
-
-IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.7)
-    SET(CXX_STD "c++0x")
-ELSE()
-    SET(CXX_STD "c++11")
-ENDIF()
-
-SET(COMPILE_BASE_FLAGS		"-Werror -Wall")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (DEFINED __TIZEN__)
-    SET(COMPILE_BASE_FLAGS "${COMPILE_BASE_FLAGS} -D__TIZEN__ ")
-endif (DEFINED __TIZEN__)
+    set(CMAKE_C_FLAGS_DEBUG	"${CMAKE_C_FLAGS_DEBUG} -D__TIZEN__ ")
+    set(CMAKE_CXX_FLAGS_DEBUG	"${CMAKE_CXX_FLAGS_DEBUG} -D__TIZEN__ ")
+    set(CMAKE_C_FLAGS_RELEASE	"${CMAKE_C_FLAGS_RELEASE} -D__TIZEN__ ")
+    set(CMAKE_CXX_FLAGS_RELEASE	"${CMAKE_CXX_FLAGS_RELEASE} -D__TIZEN__ ")
+endif()
 
-SET(CMAKE_C_FLAGS_DEBUG		"${COMPILE_BASE_FLAGS} -O0 -ggdb")
-SET(CMAKE_CXX_FLAGS_DEBUG	"${COMPILE_BASE_FLAGS} -O0 -ggdb -std=${CXX_STD}")
-SET(CMAKE_C_FLAGS_RELEASE	"${COMPILE_BASE_FLAGS} -O2 -DNDEBUG -g0")
-SET(CMAKE_CXX_FLAGS_RELEASE	"${COMPILE_BASE_FLAGS} -O2 -DNDEBUG -g0 -std=${CXX_STD}")
+add_subdirectory(libraries)
 
-INCLUDE(FindPkgConfig)
+add_executable(${PROJECT_NAME})
+
+target_sources(${PROJECT_NAME}
+    PRIVATE
+        elfhook.cpp
+)
+
+include(FindPkgConfig)
+if(DEFINED __TIZEN__)
+    pkg_check_modules(APP_DEPS REQUIRED dlog)
+endif()
+
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+        # where the library itself will look for its internal headers
+	${APP_DEPS_INCLUDE_DIRS}
+	${CMAKE_CURRENT_SOURCE_DIR}/common/inc
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE ${APP_DEPS_LIBRARIES} elfmem test)
 
 if (NOT DEFINED BIN_DIR)
     SET (BIN_DIR "/usr/apps/elfhook")
-endif (NOT DEFINED BIN_DIR)
-
-if (NOT DEFINED LIB_DIR)
-    SET (LIB_DIR "/usr/local/lib")
-endif (NOT DEFINED LIB_DIR)
+endif()
 
 if (NOT DEFINED MANIFESTDIR)
     SET (MANIFESTDIR "/usr/share/packages")
-endif (NOT DEFINED MANIFESTDIR)
+endif()
 
-# ZZZ
-#macro(print_all_variables)
-#    message(STATUS "print_all_variables------------------------------------------{")
-#    get_cmake_property(_variableNames VARIABLES)
-#    foreach (_variableName ${_variableNames})
-#        message(STATUS "${_variableName}=${${_variableName}}")
-#    endforeach()
-#    message(STATUS "print_all_variables------------------------------------------}")
-#endmacro()
-#print_all_variables()
-
-add_subdirectory(libtest)
-add_subdirectory(libelfmem)
-add_subdirectory(elfhook)
+install(TARGETS ${PROJECT_NAME} DESTINATION ${BIN_DIR})
+install(FILES ${PROJECT_NAME}.manifest DESTINATION ${MANIFESTDIR})

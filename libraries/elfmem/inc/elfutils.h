@@ -8,6 +8,8 @@
 
 #include "elfmem_def.h"
 
+namespace ns_elfmem {
+
 class ElfUtils
 {
 public:
@@ -36,5 +38,7 @@ public:
 //    static void printRelTAB(const ELF_REL_T* rel);
 //    static void printRelaTAB(const ELF_RELA_T* rela);
 };
+
+} // namespace ns_elfmem
 
 #endif // __ELFUTILS_H__

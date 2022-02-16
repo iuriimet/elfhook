@@ -11,10 +11,12 @@ BuildRequires: cmake
 BuildRequires: pkgconfig(dlog)
 
 %define _project_name elfhook
-%define _app_name %{_project_name}
 %define _app_dir /usr/apps/%{_project_name}
-%define _lib_name libtest.so
+%define _app_name %{_project_name}
 %define _lib_dir /usr/local/lib
+%define _libelfmem_name libelfmem.so
+%define _libtest_name libtest.so
+%define _inc_dir /usr/local/include
 %define _manifestdir /usr/share/packages
 
 %description
@@ -44,5 +46,8 @@ rm -rf %{buildroot}
 
 %files
 %attr(0755,root,root) %{_app_dir}/%{_app_name}
-%attr(0644,root,root) %{_lib_dir}/%{_lib_name}
+%attr(0644,root,root) %{_lib_dir}/%{_libelfmem_name}
+%attr(0644,root,root) %{_lib_dir}/%{_libtest_name}
+%attr(0644,root,root) %{_inc_dir}/elfmem/*.h
+%attr(0644,root,root) %{_inc_dir}/test/*.h
 %manifest %{_manifestdir}/%{_app_name}.manifest

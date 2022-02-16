@@ -15,6 +15,8 @@
 
 using namespace std;
 
+namespace ns_elfmem {
+
 ElfMem::ElfSo::ElfSo(const void* base_addr)
 {
     // assert(base_addr);
@@ -255,3 +257,5 @@ void ElfMem::makeSoList()
         fclose(file);
     }
 }
+
+} // namespace ns_elfmem

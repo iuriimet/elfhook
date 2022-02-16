@@ -10,6 +10,8 @@
 #include "elfutils.h"
 #include "logger.h"
 
+namespace ns_elfmem {
+
 const ELF_EHDR_T* ElfUtils::findEHDR(const void* addr)
 {
     // assert(addr);
@@ -138,3 +140,5 @@ const ELF_DYN_T* ElfUtils::findDynTAB(const ELF_EHDR_T* ehdr, const ELF_PHDR_T* 
 //    LOG_D("r_addend:       0x%lx", rela->r_addend);
 //    LOG_D("-------------------- RELA ------------------------");
 //}
+
+} // namespace ns_elfmem
