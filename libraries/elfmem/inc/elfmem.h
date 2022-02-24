@@ -28,6 +28,8 @@ class ElfMem
 
         bool hookSym(const char* proc_name, const void* subst_addr) const;
 
+        void printSym() const;
+
     private:
 
         template <typename RELT>
@@ -83,6 +85,8 @@ public:
     const void* soHookRel(const char* so_name, const char* proc_name, const void* subst_addr) const;
 
     bool soHookSym(const char* so_name, const char* proc_name, const void* subst_addr) const;
+
+    void soPrintSym(const char* so_name) const;
 
 private:
     void makeSoList();

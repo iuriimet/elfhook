@@ -1,4 +1,8 @@
 #include <stdio.h>
+#include <execinfo.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include "libtest.h"
 
@@ -8,10 +12,37 @@
 
 #include "logger.h"
 
+#define BT_BUF_SIZE 100
+
+void print_call_stack(void)
+{
+    int nptrs;
+    void* buffer[BT_BUF_SIZE];
+    char** strings;
+
+    nptrs = backtrace(buffer, BT_BUF_SIZE);
+    printf("backtrace() returned %d addresses\n", nptrs);
+
+    /* The call backtrace_symbols_fd(buffer, nptrs, STDOUT_FILENO)
+       would produce similar output to the following: */
+
+    strings = backtrace_symbols(buffer, nptrs);
+    if (strings == NULL) {
+        perror("backtrace_symbols");
+        exit(-1);
+    }
+
+    for (int j = 0; j < nptrs; j++)
+        printf("%s\n", strings[j]);
+
+    free(strings);
+}
+
 int hooked_puts_1(const char* s)
 {
     puts(s);
     puts("!!! HOOKED 111 !!!");
+    print_call_stack();
     return 0;
 }
 
@@ -19,7 +50,29 @@ int hooked_puts_2(const char* s)
 {
     puts(s);
     puts("!!! HOOKED 222 !!!");
+    print_call_stack();
     return 0;
+}
+
+int hooked_sprintf_1(char* str, const char* format, ...)
+{
+    //sprintf(str, format);
+    puts("!!! hooked_sprintf_1 !!!");
+    print_call_stack();
+    return 0;
+}
+int hooked_fputs_1(const char *s, FILE *stream)
+{
+    puts("!!! hooked_fputs_1 !!!");
+    print_call_stack();
+    return 0;
+}
+
+void* hooked_malloc(size_t size)
+{
+    puts("!!! hooked_malloc !!!");
+    print_call_stack();
+    return malloc(size);
 }
 
 //void hooked_libtest()
@@ -35,23 +88,48 @@ int main()
         LOG_D("Machine Type %d", elfmem_machine_type(elf));
         LOG_D("Encoding Type %d", elfmem_encoding_type(elf));
 
+        // Hook for libtest.so
         // original call
-        libtest();
+        test();
 
         // hook 1
         const void* orig_addr = elfmem_hook_reltab(elf, "libtest.so", "puts", (const void*)hooked_puts_1);
         LOG_D("Orig Addr %p : Hook Addr %p", (const void*)orig_addr, (const void*)hooked_puts_1);
-        libtest();
+        test();
 
         // hook 2
         const void* hook_addr_1 = elfmem_hook_reltab(elf, "libtest.so", "puts", (const void*)hooked_puts_2);
         LOG_D("Hook 1 Addr %p : Hook 2 Addr %p ", (const void*)hook_addr_1, (const void*)hooked_puts_2);
-        libtest();
+        test();
 
         // restore original
         const void* hook_addr_2 = elfmem_hook_reltab(elf, "libtest.so", "puts", (const void*)orig_addr);
         LOG_D("Hook 2 Addr %p : Orig Addr %p ", (const void*)hook_addr_2, (const void*)orig_addr);
-        libtest();
+        test();
+
+
+
+        // Hook for libstdc++.so
+        // original call
+        test_2();
+
+        // hook 3
+        orig_addr = elfmem_hook_reltab(elf, "libstdc++.so.6", "malloc", (const void*)hooked_malloc);
+        LOG_D("Orig Addr %p : Hook Addr %p", (const void*)orig_addr, (const void*)hooked_malloc);
+        test_2();
+
+        // restore original
+        const void* hook_addr = elfmem_hook_reltab(elf, "libstdc++.so.6", "malloc", (const void*)orig_addr);
+        LOG_D("Hook Addr %p : Orig Addr %p ", (const void*)hook_addr, (const void*)orig_addr);
+        test_2();
+
+
+
+
+        //elfmem_print_sym(elf, "libtest.so");
+//        elfmem_print_sym(elf, "libelfmem.so");
+        //elfmem_print_sym(elf, "libstdc++.so.6");
+
 
         elfmem_destroy(elf);
     }

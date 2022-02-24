@@ -59,3 +59,10 @@ const void* elfmem_hook_reltab(elfmem_t* obj, const char* so_name, const char* p
     }
     return res;
 }
+
+void elfmem_print_sym(elfmem_t* obj, const char* so_name)
+{
+    if (obj && obj->obj) {
+        (static_cast<ns_elfmem::ElfMem*>(obj->obj))->soPrintSym(so_name);
+    }
+}

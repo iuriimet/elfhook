@@ -6,7 +6,9 @@ extern "C"
 {
 #endif
 
-void libtest(void);
+void test(void);
+
+void test_2(void);
 
 #ifdef __cplusplus
 }

@@ -19,6 +19,8 @@ EncodingType elfmem_encoding_type(elfmem_t* obj);
 
 const void* elfmem_hook_reltab(elfmem_t* obj, const char* so_name, const char* proc_name, const void* subst_addr);
 
+void elfmem_print_sym(elfmem_t* obj, const char* so_name);
+
 #ifdef __cplusplus
 }
 #endif

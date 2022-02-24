@@ -60,6 +60,8 @@ ElfMem::ElfSo::ElfSo(const void* base_addr)
         throw runtime_error("DT_PLTREL is missing or it has incorrect type!");
     }
     m_reltype = pltrel->d_un.d_val;
+
+    LOG_D("ZZZ === New ElfSo %s", m_name);
 }
 
 const void* ElfMem::ElfSo::hookRel(const char* proc_name, const void* subst_addr) const
@@ -129,6 +131,37 @@ bool ElfMem::ElfSo::hookSym(const char* proc_name, const void* subst_addr) const
     }
 
     return res;
+}
+
+void ElfMem::ElfSo::printSym() const
+{
+//    bool res = false;
+
+    // assert(proc_name);
+    // assert(subst_addr);
+
+    LOG_D("Symbols in '%s'", m_name);
+
+    for(ELF_SYM_T* sym = (ELF_SYM_T*)m_symbols; CHECK_SYM_ATTR(sym->st_info); sym++)
+    {
+        if(ELF32_ST_BIND(sym->st_info) != STB_GLOBAL || ELF32_ST_TYPE(sym->st_info) != STT_FUNC)
+            continue;
+
+//        if(strcmp((const char*)(m_strings + sym->st_name), proc_name) == 0) {
+//            off_t off = m_ehdr->e_type == ET_DYN ? (off_t)m_ehdr : 0;
+//            res = rewriteProc((void*)(off + sym->st_value), subst_addr);
+//            break;
+//        }
+
+        off_t off = m_ehdr->e_type == ET_DYN ? (off_t)m_ehdr : 0;
+        LOG_D("Symbol '%s' found at '%p'", (const char*)(m_strings + sym->st_name), (const void*)(off + sym->st_value));
+    }
+
+/*    if (res) {
+        LOG_D("'%s' in '%s' HOOKED!", proc_name, m_name);
+    }
+
+    return res;*/
 }
 
 //void* findLibcProc(const char* procName)
@@ -219,6 +252,13 @@ bool ElfMem::soHookSym(const char* so_name, const char* proc_name, const void* s
     auto it = std::find_if(m_solist.cbegin(), m_solist.cend(),
                            [so_name](const ElfSo& so){return (strstr(so.getName(), so_name) != nullptr);});
     return (it != m_solist.cend()) ? it->hookSym(proc_name, subst_addr) : false;
+}
+
+void ElfMem::soPrintSym(const char* so_name) const
+{
+    auto it = std::find_if(m_solist.cbegin(), m_solist.cend(),
+                           [so_name](const ElfSo& so){return (strstr(so.getName(), so_name) != nullptr);});
+    if (it != m_solist.cend()) it->printSym();
 }
 
 void ElfMem::makeSoList()

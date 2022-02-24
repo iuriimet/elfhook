@@ -13,7 +13,7 @@ add_library(${PROJECT_NAME} SHARED)
 
 target_sources(${PROJECT_NAME}
     PRIVATE
-	libtest.c
+        libtest.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
