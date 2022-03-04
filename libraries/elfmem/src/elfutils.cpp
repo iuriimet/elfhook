@@ -4,7 +4,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <elf.h>
-// #include <assert.h>
+#include <execinfo.h>
+#include <string>
+#include <list>
+#include <regex>
+#include <cassert>
 
 #include "elfmem_def.h"
 #include "elfutils.h"
@@ -12,9 +16,11 @@
 
 namespace ns_elfmem {
 
+#define BT_BUF_SIZE 256
+
 const ELF_EHDR_T* ElfUtils::findEHDR(const void* addr)
 {
-    // assert(addr);
+    assert(addr);
     int psize = getpagesize();
     uintptr_t res = (uintptr_t)addr & (UINTPTR_MAX^(psize-1));
     for( ; !getEHDR((const void*)res); res-=psize);
@@ -23,7 +29,7 @@ const ELF_EHDR_T* ElfUtils::findEHDR(const void* addr)
 
 const ELF_PHDR_T* ElfUtils::findPHDR(const ELF_EHDR_T* ehdr, uint32_t type)
 {
-    // assert(ehdr);
+    assert(ehdr);
     const ELF_PHDR_T* res = (const ELF_PHDR_T*)((uintptr_t)ehdr + ehdr->e_phoff);
     for(int n = ehdr->e_phnum; n > 0 && res->p_type != type; n--, res++);
     return (res->p_type == type) ? res : nullptr;
@@ -31,13 +37,74 @@ const ELF_PHDR_T* ElfUtils::findPHDR(const ELF_EHDR_T* ehdr, uint32_t type)
 
 const ELF_DYN_T* ElfUtils::findDynTAB(const ELF_EHDR_T* ehdr, const ELF_PHDR_T* phdr, int type)
 {
-    // assert(ehdr);
-    // assert(phdr);
+    assert(ehdr);
+    assert(phdr);
     off_t off = ehdr->e_type == ET_DYN ? (off_t)ehdr : 0;
     const ELF_DYN_T* res = (const ELF_DYN_T*)(off + phdr->p_vaddr);
     for( ; res->d_tag != type && res->d_tag != DT_NULL; res++);
     return (res->d_tag == type) ? res : nullptr;
 }
+
+std::list<StackItem> ElfUtils::callStack()
+{
+    std::list<StackItem> res;
+
+    void* buffer[BT_BUF_SIZE];
+    int nptrs = backtrace(buffer, BT_BUF_SIZE);
+    if (nptrs > 0) {
+        char** symbols = backtrace_symbols(buffer, nptrs);
+        if (symbols) {
+            const std::regex re("^(\\S+)\\((\\S*)\\+0x([0-9a-fA-F]+)\\)\\s+\\[0x([0-9a-fA-F]+)\\]$");
+
+            for (int i = 0; i < nptrs; i++) {
+                try {
+                    std::string sym(symbols[i]);
+                    std::smatch rm;
+                    if (std::regex_match(sym, rm, re) && (rm.size() == 5)) {
+                        off_t off = std::stoul(rm[3].str(), nullptr, 16);
+                        uintptr_t addr = std::stoul(rm[4].str(), nullptr, 16);
+
+                        res.push_back({rm[1].str(), demangle(rm[2].str()), addr - off, off});
+                    }
+                } catch (const std::regex_error &e) {
+                    LOG_E("Backtrace error: %s", e.what());
+                }
+            }
+
+            free(symbols);
+        }
+    }
+
+    return res;
+}
+
+#ifdef __GNUG__
+#include <cxxabi.h>
+std::string ElfUtils::demangle(std::string name)
+{
+    int status = -4;
+    std::unique_ptr<char, void(*)(void*)> res{
+        abi::__cxa_demangle(name.c_str(), nullptr, nullptr, &status),
+                std::free};
+    return (status == 0) ? res.get() : name;
+}
+#else
+std::string ElfUtils::demangle(std::string name)
+{
+    return name;
+}
+#endif // __GNUG__
+
+
+
+
+//static char** ElfUtils::backTrace()
+//{
+//    void* buffer[BT_BUF_SIZE];
+//    return backtrace_symbols(buffer, backtrace(buffer, BT_BUF_SIZE));
+//}
+
+
 
 //void ElfUtils::printMaps()
 //{

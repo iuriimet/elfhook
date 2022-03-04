@@ -4,11 +4,36 @@
 #include <stdlib.h>
 #include <string.h>
 #include <elf.h>
-// #include <assert.h>
+#include <iostream>
+#include <string>
+#include <list>
+#include <cassert>
 
 #include "elfmem_def.h"
 
 namespace ns_elfmem {
+
+struct StackItem
+{
+    StackItem(std::string object, std::string symbol, uintptr_t address, off_t offset) :
+        m_object(object), m_symbol(symbol), m_address(address), m_offset(offset) {
+    }
+    ~StackItem() = default;
+
+    friend std::ostream& operator<<(std::ostream& os, const StackItem& item) {
+        os << "Stack item:\n" <<
+              "\tobject:\t\t" << item.m_object << "\n" <<
+              "\tsymbol:\t\t" << item.m_symbol << "\n" <<
+              "\taddress:\t" << "0x" << item.m_address << std::hex << "\n" <<
+              "\toffset:\t\t" << "0x" << item.m_offset << std::hex << std::endl;
+        return os;
+    }
+
+    std::string m_object;
+    std::string m_symbol;
+    uintptr_t m_address;
+    off_t m_offset;
+};
 
 class ElfUtils
 {
@@ -16,7 +41,7 @@ public:
     static const ELF_EHDR_T* findEHDR(const void* addr);
 
     static inline const ELF_EHDR_T* getEHDR(const void* addr) {
-        // assert(addr);
+        assert(addr);
         const ELF_EHDR_T* res = (const ELF_EHDR_T*)addr;
         return (strncmp((const char*)res->e_ident, ELFMAG, SELFMAG) == 0) ? res : nullptr;
     }
@@ -24,6 +49,13 @@ public:
     static const ELF_PHDR_T* findPHDR(const ELF_EHDR_T* ehdr, uint32_t type);
 
     static const ELF_DYN_T* findDynTAB(const ELF_EHDR_T* ehdr, const ELF_PHDR_T* phdr, int type);
+
+    static std::list<StackItem> callStack();
+
+private:
+    static std::string demangle(std::string name);
+
+    //static char** backTrace();
 
 //    static void printMaps();
 

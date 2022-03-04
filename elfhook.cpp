@@ -88,24 +88,30 @@ int main()
         LOG_D("Machine Type %d", elfmem_machine_type(elf));
         LOG_D("Encoding Type %d", elfmem_encoding_type(elf));
 
-        // Hook for libtest.so
-        // original call
-        test();
+        LOG_D("test sym at %p", elfmem_find_sym(elf, "libtest.so", "test"));
+        LOG_D("test_2 sym at %p", elfmem_find_sym(elf, "libtest.so", "test_2"));
 
-        // hook 1
-        const void* orig_addr = elfmem_hook_reltab(elf, "libtest.so", "puts", (const void*)hooked_puts_1);
-        LOG_D("Orig Addr %p : Hook Addr %p", (const void*)orig_addr, (const void*)hooked_puts_1);
-        test();
 
-        // hook 2
-        const void* hook_addr_1 = elfmem_hook_reltab(elf, "libtest.so", "puts", (const void*)hooked_puts_2);
-        LOG_D("Hook 1 Addr %p : Hook 2 Addr %p ", (const void*)hook_addr_1, (const void*)hooked_puts_2);
-        test();
 
-        // restore original
-        const void* hook_addr_2 = elfmem_hook_reltab(elf, "libtest.so", "puts", (const void*)orig_addr);
-        LOG_D("Hook 2 Addr %p : Orig Addr %p ", (const void*)hook_addr_2, (const void*)orig_addr);
-        test();
+
+//        // Hook for libtest.so
+//        // original call
+//        test();
+
+//        // hook 1
+//        const void* orig_addr_1 = elfmem_hook_reltab(elf, "libtest.so", "puts", (const void*)hooked_puts_1);
+//        LOG_D("Orig Addr %p : Hook Addr %p", (const void*)orig_addr_1, (const void*)hooked_puts_1);
+//        test();
+
+//        // hook 2
+//        const void* hook_addr_11 = elfmem_hook_reltab(elf, "libtest.so", "puts", (const void*)hooked_puts_2);
+//        LOG_D("Hook 1 Addr %p : Hook 2 Addr %p ", (const void*)hook_addr_11, (const void*)hooked_puts_2);
+//        test();
+
+//        // restore original
+//        const void* hook_addr_12 = elfmem_hook_reltab(elf, "libtest.so", "puts", (const void*)orig_addr_1);
+//        LOG_D("Hook 2 Addr %p : Orig Addr %p ", (const void*)hook_addr_12, (const void*)orig_addr_1);
+//        test();
 
 
 
@@ -114,13 +120,13 @@ int main()
         test_2();
 
         // hook 3
-        orig_addr = elfmem_hook_reltab(elf, "libstdc++.so.6", "malloc", (const void*)hooked_malloc);
-        LOG_D("Orig Addr %p : Hook Addr %p", (const void*)orig_addr, (const void*)hooked_malloc);
+        const void* orig_addr_2 = elfmem_hook_reltab(elf, "libstdc++.so.6", "malloc", (const void*)hooked_malloc);
+        LOG_D("Orig Addr %p : Hook Addr %p", (const void*)orig_addr_2, (const void*)hooked_malloc);
         test_2();
 
         // restore original
-        const void* hook_addr = elfmem_hook_reltab(elf, "libstdc++.so.6", "malloc", (const void*)orig_addr);
-        LOG_D("Hook Addr %p : Orig Addr %p ", (const void*)hook_addr, (const void*)orig_addr);
+        const void* hook_addr_22 = elfmem_hook_reltab(elf, "libstdc++.so.6", "malloc", (const void*)orig_addr_2);
+        LOG_D("Hook Addr %p : Orig Addr %p ", (const void*)hook_addr_22, (const void*)orig_addr_2);
         test_2();
 
 
@@ -133,32 +139,6 @@ int main()
 
         elfmem_destroy(elf);
     }
-
-
-    /*
-    elfmem::ElfMem elf;
-
-    // original call
-    libtest();
-
-    // hook 1
-    const void* orig_addr = elf.soHookRel("libtest.so", "puts", (const void*)hooked_puts_1);
-    LOG_D("Orig Addr %p : Hook Addr %p", (const void*)orig_addr, (const void*)hooked_puts_1);
-    libtest();
-
-    // hook 2
-    const void* hook_addr_1 = elf.soHookRel("libtest.so", "puts", (const void*)hooked_puts_2);
-    LOG_D("Hook 1 Addr %p : Hook 2 Addr %p ", (const void*)hook_addr_1, (const void*)hooked_puts_2);
-    libtest();
-
-    // restore original
-    const void* hook_addr_2 = elf.soHookRel("libtest.so", "puts", (const void*)orig_addr);
-    LOG_D("Hook 2 Addr %p : Orig Addr %p ", (const void*)hook_addr_2, (const void*)orig_addr);
-    libtest();
-
-//    elf.soHookSym("libtest.so", "libtest", (const void*)hooked_libtest);
-//    libtest();
-    */
 
     return 0;
 }

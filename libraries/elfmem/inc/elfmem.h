@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <list>
-// #include <assert.h>
+#include <cassert>
 
 #include "elfmem_def.h"
 
@@ -26,18 +26,21 @@ class ElfMem
 
         const void* hookRel(const char* proc_name, const void* subst_addr) const;
 
-        bool hookSym(const char* proc_name, const void* subst_addr) const;
+        const void* findSym(const char* proc_name) const;
 
-        void printSym() const;
+
+
+//        bool hookSym(const char* proc_name, const void* subst_addr) const;
+//        void printSym() const;
 
     private:
 
         template <typename RELT>
         const void* hookRelTab(const RELT* reltab, int relcnt, uint64_t reltype,
                                const char* proc_name, const void* subst_addr) const {
-            // assert(reltab);
-            // assert(proc_name);
-            // assert(subst_addr);
+             assert(reltab);
+             assert(proc_name);
+             assert(subst_addr);
 
             const void* res = nullptr;
 
@@ -61,8 +64,8 @@ class ElfMem
             return res;
         }
 
-        static void rewriteProc(void* proc_addr, const void* buff, size_t size);
-        bool rewriteProc(void* proc_addr, const void* subst_addr) const;
+//        static void rewriteProc(void* proc_addr, const void* buff, size_t size);
+//        bool rewriteProc(void* proc_addr, const void* subst_addr) const;
 
         const ELF_EHDR_T* m_ehdr;
         const ELF_PHDR_T* m_phdr;
@@ -84,9 +87,12 @@ public:
 
     const void* soHookRel(const char* so_name, const char* proc_name, const void* subst_addr) const;
 
-    bool soHookSym(const char* so_name, const char* proc_name, const void* subst_addr) const;
+    const void* soFindSym(const char* so_name, const char* proc_name) const;
 
-    void soPrintSym(const char* so_name) const;
+
+//    bool soHookSym(const char* so_name, const char* proc_name, const void* subst_addr) const;
+//    void soPrintSym(const char* so_name) const;
+
 
 private:
     void makeSoList();
