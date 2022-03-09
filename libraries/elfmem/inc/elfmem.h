@@ -3,7 +3,8 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <stdbool.h>
+// ZZZ
+// #include <stdbool.h>
 #include <string.h>
 #include <list>
 #include <cassert>

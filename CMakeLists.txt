@@ -36,7 +36,7 @@ target_include_directories(${PROJECT_NAME}
 	${CMAKE_CURRENT_SOURCE_DIR}/common/inc
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${APP_DEPS_LIBRARIES} elfmem test)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${APP_DEPS_LIBRARIES} elfmem elffuzz test)
 
 if (NOT DEFINED BIN_DIR)
     SET (BIN_DIR "/usr/apps/elfhook")

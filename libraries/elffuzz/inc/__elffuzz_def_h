@@ -1,5 +1,5 @@
-#ifndef __ELFMEM_DEF_H__
-#define __ELFMEM_DEF_H__
+#ifndef ____ELFFUZZ_DEF_H_H__
+#define ____ELFFUZZ_DEF_H_H__
 
 #include <stdlib.h>
 #include <elf.h>
@@ -151,4 +151,12 @@ typedef enum
 #define CHECK_SYM_ST_TYPE(v)    ((v) != STT_HIPROC)
 #define CHECK_SYM_ATTR(attr)    (CHECK_SYM_ST_BIND(ELF_ST_BIND(attr)) && CHECK_SYM_ST_TYPE(ELF_ST_TYPE(attr)))
 
-#endif /* __ELFMEM_DEF_H__ */
+typedef struct
+{
+    const char* object;
+    const char* symbol;
+    uintptr_t address;
+    off_t offset;
+} CallStackItem;
+
+#endif /* ____ELFFUZZ_DEF_H_H__ */

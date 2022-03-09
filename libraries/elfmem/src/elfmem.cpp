@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdint.h>
-#include <stdbool.h>
+// ZZZ
+// #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/mman.h>
@@ -120,8 +121,8 @@ const void* ElfMem::ElfSo::findSym(const char* proc_name) const
 
         if(strcmp((const char*)(m_strings + sym->st_name), proc_name) == 0) {
             off_t off = m_ehdr->e_type == ET_DYN ? (off_t)m_ehdr : 0;
-            LOG_D("Symbol '%s' found at '%p'", (const char*)(m_strings + sym->st_name), (const void*)(off + sym->st_value));
             res = (const void*)(off + sym->st_value);
+            LOG_D("Symbol '%s' found at '%p'", proc_name, res);
             break;
         }
     }
@@ -228,6 +229,9 @@ const void* ElfMem::ElfSo::findSym(const char* proc_name) const
 //    }
 //    return res;
 //}
+
+
+
 
 ElfMem::ElfMem()
 {

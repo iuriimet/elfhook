@@ -68,10 +68,3 @@ const void* elfmem_find_sym(elfmem_t* obj, const char* so_name, const char* proc
     }
     return res;
 }
-
-//void elfmem_print_sym(elfmem_t* obj, const char* so_name)
-//{
-//    if (obj && obj->obj) {
-//        (static_cast<ns_elfmem::ElfMem*>(obj->obj))->soPrintSym(so_name);
-//    }
-//}

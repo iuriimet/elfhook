@@ -1,6 +1,8 @@
 #ifndef __LIBELFMEM_H__
 #define __LIBELFMEM_H__
 
+#include <stdlib.h>
+
 #include "elfmem_def.h"
 
 #ifdef __cplusplus
@@ -20,10 +22,6 @@ EncodingType elfmem_encoding_type(elfmem_t* obj);
 const void* elfmem_hook_reltab(elfmem_t* obj, const char* so_name, const char* proc_name, const void* subst_addr);
 
 const void* elfmem_find_sym(elfmem_t* obj, const char* so_name, const char* proc_name);
-
-
-
-//void elfmem_print_sym(elfmem_t* obj, const char* so_name);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <iostream>
+#include <new>
 
 #include "libtest.h"
 
@@ -16,8 +17,13 @@ void test(void)
 void test_2(void)
 {
     std::cout << "libtest:test_2 - original call" << std::endl;
-    int* arr = new int[5];
-    delete [] arr;
+    int* arr = new(std::nothrow) int[5];
+    if (arr) {
+        std::cout << "alloc : success" << std::endl;
+        delete [] arr;
+    } else {
+        std::cout << "alloc : failed" << std::endl;
+    }
 }
 
 //#ifdef __cplusplus
