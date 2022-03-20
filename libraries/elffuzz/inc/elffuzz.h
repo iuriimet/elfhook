@@ -7,8 +7,8 @@
 #include <string>
 #include <iostream>
 #include <list>
-#include <map>
-#include <functional>
+//#include <map>
+//#include <functional>
 // ZZZ
 //#include <cassert>
 
@@ -38,31 +38,31 @@ struct StackItem
     off_t m_offset;
 };
 
-class ElfHook
-{
-public:
-    ElfHook(elfmem_t* elf, const std::string& hook_so, const std::string& hook_proc, const void* hook_proc_addr);
+//class ElfHook
+//{
+//public:
+//    ElfHook(elfmem_t* elf, const std::string& hook_so, const std::string& hook_proc, const void* hook_proc_addr);
 
-    ElfHook(const ElfHook& obj) = delete;
-    ElfHook& operator=(const ElfHook& obj) = delete;
+//    ElfHook(const ElfHook& obj) = delete;
+//    ElfHook& operator=(const ElfHook& obj) = delete;
 
-    ElfHook(ElfHook&& obj);
-    ElfHook& operator=(ElfHook&& obj);
+//    ElfHook(ElfHook&& obj);
+//    ElfHook& operator=(ElfHook&& obj);
 
-    virtual ~ElfHook();
+//    virtual ~ElfHook();
 
-private:
-    elfmem_t* m_elf;
-    std::string m_hook_so;
-    std::string m_hook_proc;
-    const void* m_hook_proc_addr;
-    const void* m_orig_addr;
-};
+//private:
+//    elfmem_t* m_elf;
+//    std::string m_hook_so;
+//    std::string m_hook_proc;
+//    const void* m_hook_proc_addr;
+//    const void* m_orig_addr;
+//};
 
 class ElfFuzz
 {
 public:
-    ElfFuzz(const std::string& fuzz_so, const std::string& fuzz_proc);
+    ElfFuzz(const std::string& exe_name, const std::string& fuzz_so, const std::string& fuzz_sym);
 
     ElfFuzz(const ElfFuzz& obj) = delete;
     ElfFuzz& operator=(const ElfFuzz& obj) = delete;
@@ -72,19 +72,31 @@ public:
 
     virtual ~ElfFuzz();
 
-    bool addHook(const std::string& hook_so, const std::string& hook_proc, const void* hook_proc_addr, std::size_t* hook_id);
-    bool delHook(std::size_t hook_id);
-    bool checkHook(std::size_t hook_id) const;
+    const void* addHook(const std::string& hook_so, const std::string& hook_sym, const void* hook_subst_addr);
+    void delHook(const void* hook_addr);
 
 private:
-    static std::list<StackItem> callStack();
-    static std::string demangle(const std::string& name);
-
     std::string m_fuzz_so;
-    std::string m_fuzz_proc;
+    std::string m_fuzz_sym;
     elfmem_t* m_elf;
-    const void* m_fuzz_proc_addr;
-    std::map<std::size_t, ElfHook> m_hook_map;
+    const void* m_fuzz_sym_addr;
+    std::string m_hook_so;
+    std::string m_hook_sym;
+    const void* m_hook_subst_addr;
+    const void* m_hook_sym_addr;
+
+
+//    static std::list<StackItem> callStack();
+//    static std::string demangle(const std::string& name);
+
+
+
+
+//    std::string m_fuzz_so;
+//    std::string m_fuzz_proc;
+//    elfmem_t* m_elf;
+//    const void* m_fuzz_proc_addr;
+//    std::map<std::size_t, ElfHook> m_hook_map;
 };
 
 } // namespace ns_elffuzz

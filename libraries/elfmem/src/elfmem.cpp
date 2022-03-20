@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <stdint.h>
-// ZZZ
-// #include <stdbool.h>
+#include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <algorithm>
+#include <string>
 #include <stdexcept>
 #include <cassert>
 
@@ -18,18 +18,22 @@ using namespace std;
 
 namespace ns_elfmem {
 
-ElfMem::ElfSo::ElfSo(const void* base_addr)
+ElfMem::ElfBin::ElfBin(uintptr_t beg_addr, uintptr_t end_addr, const char* name)
 {
-    assert(base_addr);
+    assert(beg_addr != 0);
+    assert(end_addr != 0);
+    assert(name);
 
-    m_ehdr = ElfUtils::findEHDR((const void*)base_addr);
+    m_beg_addr = beg_addr;
+    m_end_addr = end_addr;
+    m_name = name;
+
+    m_ehdr = ElfUtils::findEHDR((const void*)m_beg_addr);
     if (!m_ehdr || m_ehdr->e_type != ET_DYN) {
-        throw runtime_error("Could not found shared object header!");
+        throw runtime_error("Could not found object header!");
     }
 
 //    off_t off = m_ehdr->e_type == ET_DYN ? (off_t)m_ehdr : 0;
-
-//    const ELF_PHDR_T* load = ElfUtils::findPHDR(m_ehdr, PT_LOAD);
 
     m_phdr = ElfUtils::findPHDR(m_ehdr, PT_DYNAMIC);
     if (!m_phdr) {
@@ -43,11 +47,11 @@ ElfMem::ElfSo::ElfSo(const void* base_addr)
     m_strings = (const char*)m_strtab->d_un.d_ptr;
 //    m_strings = (const char*)(off + m_strtab->d_un.d_ptr);
 
-    const ELF_DYN_T* soname = ElfUtils::findDynTAB(m_ehdr, m_phdr, DT_SONAME);
-    if (!soname) {
-        throw runtime_error("DT_SONAME is missing!");
-    }
-    m_name = (const char*)(m_strings + soname->d_un.d_val);
+//    const ELF_DYN_T* soname = ElfUtils::findDynTAB(m_ehdr, m_phdr, DT_SONAME);
+//    if (!soname) {
+//        throw runtime_error("DT_SONAME is missing!");
+//    }
+//    m_name = (const char*)(m_strings + soname->d_un.d_val);
 
     m_symtab = ElfUtils::findDynTAB(m_ehdr, m_phdr, DT_SYMTAB);
     if (!m_symtab) {
@@ -55,6 +59,76 @@ ElfMem::ElfSo::ElfSo(const void* base_addr)
     }
     m_symbols = (const ELF_SYM_T*)m_symtab->d_un.d_ptr;
 //    m_symbols = (const ELF_SYM_T*)(off + m_symtab->d_un.d_ptr);
+
+//    const ELF_DYN_T* pltrel = ElfUtils::findDynTAB(m_ehdr, m_phdr, DT_PLTREL);
+//    if (!pltrel || (pltrel->d_un.d_val != DT_REL && pltrel->d_un.d_val != DT_RELA)) {
+//        throw runtime_error("DT_PLTREL is missing or it has incorrect type!");
+//    }
+//    m_reltype = pltrel->d_un.d_val;
+
+    LOG_D("ZZZ === New ElfBin %s", m_name);
+}
+
+const void* ElfMem::ElfBin::findSymByName(const char* sym_name) const
+{
+    const void* res = nullptr;
+
+    assert(sym_name);
+
+    LOG_D("Try to find sym '%s' in '%s'", sym_name, m_name);
+
+    for(ELF_SYM_T* sym = (ELF_SYM_T*)m_symbols; CHECK_SYM_ATTR(sym->st_info); sym++) {
+        if(ELF_ST_BIND(sym->st_info) != STB_GLOBAL || ELF_ST_TYPE(sym->st_info) != STT_FUNC)
+            continue;
+
+        if(strcmp((const char*)(m_strings + sym->st_name), sym_name) == 0) {
+            off_t off = m_ehdr->e_type == ET_DYN ? (off_t)m_ehdr : 0;
+            res = (const void*)(off + sym->st_value);
+            LOG_D("Symbol '%s' found at '%p'", sym_name, res);
+            break;
+        }
+    }
+
+    return res;
+}
+const char* ElfMem::ElfBin::findSymByAddr(uintptr_t addr, uintptr_t* sym_addr) const
+{
+    const char* res = nullptr;
+    uintptr_t res_addr = m_beg_addr;
+
+    assert(addr != 0);
+
+    LOG_D("Try to find sym at '%p' in '%s'", (const void*)addr, m_name);
+
+    if (addr >= m_beg_addr && addr < m_end_addr) {
+        for(ELF_SYM_T* sym = (ELF_SYM_T*)m_symbols; CHECK_SYM_ATTR(sym->st_info); sym++) {
+            if(ELF_ST_BIND(sym->st_info) != STB_GLOBAL || ELF_ST_TYPE(sym->st_info) != STT_FUNC)
+                continue;
+
+            off_t off = m_ehdr->e_type == ET_DYN ? (off_t)m_ehdr : 0;
+            uintptr_t add = (uintptr_t)(off + sym->st_value);
+            if (add <= addr && add > res_addr) {
+                res = (const char*)(m_strings + sym->st_name);
+                res_addr = add;
+            }
+        }
+    }
+
+    if (res) {
+        LOG_D("Symbol '%s' found at '%p'", res, (const void*)res_addr);
+        if (sym_addr) *sym_addr = res_addr;
+    }
+
+    return res;
+}
+
+ElfMem::ElfSo::ElfSo(uintptr_t beg_addr, uintptr_t end_addr) : ElfMem::ElfBin(beg_addr, end_addr)
+{
+    const ELF_DYN_T* soname = ElfUtils::findDynTAB(m_ehdr, m_phdr, DT_SONAME);
+    if (!soname) {
+        throw runtime_error("DT_SONAME is missing!");
+    }
+    m_name = (const char*)(m_strings + soname->d_un.d_val);
 
     const ELF_DYN_T* pltrel = ElfUtils::findDynTAB(m_ehdr, m_phdr, DT_PLTREL);
     if (!pltrel || (pltrel->d_un.d_val != DT_REL && pltrel->d_un.d_val != DT_RELA)) {
@@ -65,14 +139,14 @@ ElfMem::ElfSo::ElfSo(const void* base_addr)
     LOG_D("ZZZ === New ElfSo %s", m_name);
 }
 
-const void* ElfMem::ElfSo::hookRel(const char* proc_name, const void* subst_addr) const
+const void* ElfMem::ElfSo::hookRel(const char* sym_name, const void* subst_addr) const
 {
     const void* res = nullptr;
 
-    assert(proc_name);
+    assert(sym_name);
     assert(subst_addr);
 
-    LOG_D("Try to hook proc '%s' in '%s'", proc_name, m_name);
+    LOG_D("Try to hook proc '%s' in '%s'", sym_name, m_name);
 
     const ELF_DYN_T* jmprel = ElfUtils::findDynTAB(m_ehdr, m_phdr, DT_JMPREL);
     const ELF_DYN_T* pltrelsz = ElfUtils::findDynTAB(m_ehdr, m_phdr, DT_PLTRELSZ);
@@ -81,163 +155,25 @@ const void* ElfMem::ElfSo::hookRel(const char* proc_name, const void* subst_addr
 //        ElfUtils::printDynTAB(pltrelsz);
         res = (m_reltype == DT_REL) ?
               hookRelTab((const ELF_REL_T*)jmprel->d_un.d_ptr, pltrelsz->d_un.d_val / sizeof(ELF_REL_T),
-                         R_X86_64_JUMP_SLOT, proc_name, subst_addr) :
+                         R_X86_64_JUMP_SLOT, sym_name, subst_addr) :
               hookRelTab((const ELF_RELA_T*)jmprel->d_un.d_ptr, pltrelsz->d_un.d_val / sizeof(ELF_RELA_T),
-                         R_X86_64_JUMP_SLOT, proc_name, subst_addr);
-
-
-//        R_AARCH64_JUMP_SLOT
-
-//        off_t off = m_ehdr->e_type == ET_DYN ? (off_t)m_ehdr : 0;
-//        res = (m_reltype == DT_REL) ?
-//              hookRelTab((const ELF_REL_T*)(off + jmprel->d_un.d_ptr), pltrelsz->d_un.d_val / sizeof(ELF_REL_T),
-//                         R_X86_64_JUMP_SLOT, proc_name, subst_addr) :
-//              hookRelTab((const ELF_RELA_T*)(off + jmprel->d_un.d_ptr), pltrelsz->d_un.d_val / sizeof(ELF_RELA_T),
-//                         R_X86_64_JUMP_SLOT, proc_name, subst_addr);
-
+                         R_X86_64_JUMP_SLOT, sym_name, subst_addr);
     } else {
         LOG_D("DT_JMPREL(DT_PLTRELSZ) table is missing!");
     }
 
     if (res) {
-        LOG_D("'%s' in '%s' HOOKED!", proc_name, m_name);
+        LOG_D("'%s' in '%s' HOOKED!", sym_name, m_name);
     }
 
     return res;
 }
 
-const void* ElfMem::ElfSo::findSym(const char* proc_name) const
-{
-    const void* res = nullptr;
-
-    assert(proc_name);
-
-    LOG_D("Try to find sym '%s' in '%s'", proc_name, m_name);
-
-    for(ELF_SYM_T* sym = (ELF_SYM_T*)m_symbols; CHECK_SYM_ATTR(sym->st_info); sym++)
-    {
-        if(ELF_ST_BIND(sym->st_info) != STB_GLOBAL || ELF_ST_TYPE(sym->st_info) != STT_FUNC)
-            continue;
-
-        if(strcmp((const char*)(m_strings + sym->st_name), proc_name) == 0) {
-            off_t off = m_ehdr->e_type == ET_DYN ? (off_t)m_ehdr : 0;
-            res = (const void*)(off + sym->st_value);
-            LOG_D("Symbol '%s' found at '%p'", proc_name, res);
-            break;
-        }
-    }
-
-    return res;
-}
-
-
-
-
-
-
-
-
-
-
-//bool ElfMem::ElfSo::hookSym(const char* proc_name, const void* subst_addr) const
-//{
-//    bool res = false;
-
-//    // assert(proc_name);
-//    // assert(subst_addr);
-
-//    LOG_D("Try to hook proc '%s' in '%s'", proc_name, m_name);
-
-//    for(ELF_SYM_T* sym = (ELF_SYM_T*)m_symbols; CHECK_SYM_ATTR(sym->st_info); sym++)
-//    {
-//        if(ELF32_ST_BIND(sym->st_info) != STB_GLOBAL || ELF32_ST_TYPE(sym->st_info) != STT_FUNC)
-//            continue;
-
-//        if(strcmp((const char*)(m_strings + sym->st_name), proc_name) == 0) {
-//            off_t off = m_ehdr->e_type == ET_DYN ? (off_t)m_ehdr : 0;
-//            res = rewriteProc((void*)(off + sym->st_value), subst_addr);
-//            break;
-//        }
-//    }
-
-//    if (res) {
-//        LOG_D("'%s' in '%s' HOOKED!", proc_name, m_name);
-//    }
-
-//    return res;
-//}
-
-//void ElfMem::ElfSo::printSym() const
-//{
-//    LOG_D("Symbols in '%s'", m_name);
-
-//    for(ELF_SYM_T* sym = (ELF_SYM_T*)m_symbols; CHECK_SYM_ATTR(sym->st_info); sym++)
-//    {
-//        if(ELF32_ST_BIND(sym->st_info) != STB_GLOBAL || ELF32_ST_TYPE(sym->st_info) != STT_FUNC)
-//            continue;
-//        off_t off = m_ehdr->e_type == ET_DYN ? (off_t)m_ehdr : 0;
-//        LOG_D("Symbol '%s' found at '%p'", (const char*)(m_strings + sym->st_name), (const void*)(off + sym->st_value));
-//    }
-//}
-
-
-
-
-//void* findLibcProc(const char* procName)
-//{
-
-//    void* libc = dlopen("libc.so", RTLD_NOW);
-//    return dlsym(libc, procName);
-//}
-
-//void ElfMem::ElfSo::rewriteProc(void* proc_addr, const void* buff, size_t size)
-//{
-//    int psize = getpagesize();
-//    mprotect((void*)((uintptr_t)proc_addr & (UINTPTR_MAX^(psize-1))), psize, PROT_WRITE|PROT_READ|PROT_EXEC);
-//    memcpy(proc_addr, buff, size);
-//    mprotect((void*)((uintptr_t)proc_addr & (UINTPTR_MAX^(psize-1))), psize, PROT_READ|PROT_EXEC);
-//}
-//bool ElfMem::ElfSo::rewriteProc(void* proc_addr, const void* subst_addr) const
-//{
-//    bool res = true;
-//    switch(m_ehdr->e_machine)
-//    {
-//    case MACHINE_X86_64:
-//        {
-//            unsigned char cmd[] = {0x48, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xe0};
-//            memcpy((void*)&cmd[2], (const void*)&subst_addr, sizeof(subst_addr));
-//            rewriteProc(proc_addr, (const void*)cmd, sizeof(cmd));
-//        }
-//        break;
-////    case MACHINE_ARM:
-////        {
-////            unsigned char cmd[] = {0x04, 0xf0, 0x1f, 0xe5, 0x00, 0x00, 0x00, 0x00};
-////            memcpy((void*)&cmd[4], (const void*)&subst_addr, sizeof(subst_addr));
-////            rewriteProc(proc_addr, (const void*)cmd, sizeof(cmd));
-////        }
-////        break;
-//    case MACHINE_AARCH64:
-//        {
-//            unsigned char cmd[] = {0x50, 0x00, 0x00, 0x58, 0x00, 0x02, 0x1f, 0xd6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-//            memcpy((void*)&cmd[8], (const void*)&subst_addr, sizeof(subst_addr));
-//            rewriteProc(proc_addr, (const void*)cmd, sizeof(cmd));
-//        }
-//        break;
-//    default:
-//        res = false;
-//        break;
-//    }
-//    return res;
-//}
-
-
-
-
-ElfMem::ElfMem()
+ElfMem::ElfMem(const string& exe_name) : m_exe_name(exe_name), m_bin(nullptr)
 {
     LOG_D("Mahine : %d, MachineType : %d, EncodingType : %d", getMachine(), getMachineType(), getEncodingType());
 //    ElfUtils::printMaps();
-    makeSoList();
+    makeBinList();
 }
 
 Machine ElfMem::getMachine()
@@ -256,43 +192,41 @@ EncodingType ElfMem::getEncodingType()
     return (ehdr) ? (EncodingType)ehdr->e_ident[EI_DATA] : ENCODING_TYPE_UNKNOWN;
 }
 
-const void* ElfMem::soHookRel(const char* so_name, const char* proc_name, const void* subst_addr) const
+const void* ElfMem::findSymByName(const char* bin_name, const char* sym_name) const
+{
+    assert(bin_name);
+    assert(sym_name);
+    if (strcmp(m_bin->getName(), bin_name) == 0) {
+        return m_bin->findSymByName(sym_name);
+    }
+    auto it = std::find_if(m_so_list.begin(), m_so_list.end(),
+                           [bin_name](const ElfSo& so){return (strstr(so.getName(), bin_name) != nullptr);});
+    return (it != m_so_list.cend()) ? it->findSymByName(sym_name) : nullptr;
+}
+const char* ElfMem::findSymByAddr(uintptr_t addr, uintptr_t* sym_addr) const
+{
+    const char* res = nullptr;
+    assert(addr != 0);
+    if (!(res = m_bin->findSymByAddr(addr, sym_addr))) {
+        for (const ElfSo& so : m_so_list) {
+            if ((res = so.findSymByAddr(addr, sym_addr)))
+                break;
+        }
+    }
+    return res;
+}
+
+const void* ElfMem::hookRel(const char* so_name, const char* sym_name, const void* subst_addr) const
 {
     assert(so_name);
-    assert(proc_name);
+    assert(sym_name);
     assert(subst_addr);
-    auto it = std::find_if(m_solist.begin(), m_solist.end(),
+    auto it = std::find_if(m_so_list.begin(), m_so_list.end(),
                            [so_name](const ElfSo& so){return (strstr(so.getName(), so_name) != nullptr);});
-    return (it != m_solist.cend()) ? it->hookRel(proc_name, subst_addr) : nullptr;
+    return (it != m_so_list.cend()) ? it->hookRel(sym_name, subst_addr) : nullptr;
 }
 
-const void* ElfMem::soFindSym(const char* so_name, const char* proc_name) const
-{
-    assert(so_name);
-    assert(proc_name);
-    auto it = std::find_if(m_solist.begin(), m_solist.end(),
-                           [so_name](const ElfSo& so){return (strstr(so.getName(), so_name) != nullptr);});
-    return (it != m_solist.cend()) ? it->findSym(proc_name) : nullptr;
-}
-
-//bool ElfMem::soHookSym(const char* so_name, const char* proc_name, const void* subst_addr) const
-//{
-//    // assert(so_name);
-//    // assert(proc_name);
-//    // assert(subst_addr);
-//    auto it = std::find_if(m_solist.cbegin(), m_solist.cend(),
-//                           [so_name](const ElfSo& so){return (strstr(so.getName(), so_name) != nullptr);});
-//    return (it != m_solist.cend()) ? it->hookSym(proc_name, subst_addr) : false;
-//}
-
-//void ElfMem::soPrintSym(const char* so_name) const
-//{
-//    auto it = std::find_if(m_solist.cbegin(), m_solist.cend(),
-//                           [so_name](const ElfSo& so){return (strstr(so.getName(), so_name) != nullptr);});
-//    if (it != m_solist.cend()) it->printSym();
-//}
-
-void ElfMem::makeSoList()
+void ElfMem::makeBinList()
 {
     FILE* file = nullptr;
 
@@ -312,15 +246,22 @@ void ElfMem::makeSoList()
 #else
             if (sscanf(buf, "%x-%x %*s %*s %*s %*s %s", &beg, &end, buf) == 3) {
 #endif
-                if(strstr(buf, ".so") == 0)
-                    continue;
+                if (strstr(buf, ".so")) {
+                    LOG_D("Shared object %s was found at %p:%p", buf, (void*)beg, (void*)end);
 
-                LOG_D("Shared object %s was found at %p", buf, (void*)beg);
+                    try {
+                        m_so_list.emplace_back(ElfSo{beg, end});
+                    } catch (const exception& e) {
+                        LOG_D("Could not create shared : %s", e.what());
+                    }
+                } else if (strstr(buf, m_exe_name.c_str())) {
+                    LOG_D("Executable %s was found at %p:%p", buf, (void*)beg, (void*)end);
 
-                try {
-                    m_solist.emplace_back(ElfSo{(const void*)beg});
-                } catch (const exception& e) {
-                    LOG_D("Could not create shared : %s", e.what());
+                    try {
+                        m_bin = new ElfBin(beg, end, m_exe_name.c_str());
+                    } catch (const exception& e) {
+                        LOG_D("Could not create executable : %s", e.what());
+                    }
                 }
             }
         }

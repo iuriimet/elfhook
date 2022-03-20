@@ -9,11 +9,11 @@ struct elfmem
     void* obj;
 };
 
-elfmem_t* elfmem_create(void)
+elfmem_t* elfmem_create(const char* exe_name)
 {
     elfmem_t* res = new elfmem_t();
     if (res) {
-        res->obj = new ns_elfmem::ElfMem();
+        res->obj = new ns_elfmem::ElfMem(exe_name);
     }
     return res;
 }
@@ -51,20 +51,30 @@ EncodingType elfmem_encoding_type(elfmem_t* obj)
     return res;
 }
 
-const void* elfmem_hook_reltab(elfmem_t* obj, const char* so_name, const char* proc_name, const void* subst_addr)
+const void* elfmem_find_sym_by_name(elfmem_t* obj, const char* bin_name, const char* sym_name)
 {
     const void* res = NULL;
     if (obj && obj->obj) {
-        res = (static_cast<ns_elfmem::ElfMem*>(obj->obj))->soHookRel(so_name, proc_name, subst_addr);
+        res = (static_cast<ns_elfmem::ElfMem*>(obj->obj))->findSymByName(bin_name, sym_name);
     }
     return res;
 }
 
-const void* elfmem_find_sym(elfmem_t* obj, const char* so_name, const char* proc_name)
+const char* elfmem_find_sym_by_addr(elfmem_t* obj, uintptr_t addr, uintptr_t* sym_addr)
+{
+    const char* res = NULL;
+    if (obj && obj->obj) {
+        res = (static_cast<ns_elfmem::ElfMem*>(obj->obj))->findSymByAddr(addr, sym_addr);
+    }
+    return res;
+}
+
+
+const void* elfmem_hook_reltab(elfmem_t* obj, const char* so_name, const char* sym_name, const void* subst_addr)
 {
     const void* res = NULL;
     if (obj && obj->obj) {
-        res = (static_cast<ns_elfmem::ElfMem*>(obj->obj))->soFindSym(so_name, proc_name);
+        res = (static_cast<ns_elfmem::ElfMem*>(obj->obj))->hookRel(so_name, sym_name, subst_addr);
     }
     return res;
 }

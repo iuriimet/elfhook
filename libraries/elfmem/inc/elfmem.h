@@ -3,9 +3,9 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-// ZZZ
-// #include <stdbool.h>
+#include <stdbool.h>
 #include <string.h>
+#include <string>
 #include <list>
 #include <cassert>
 
@@ -15,32 +15,46 @@ namespace ns_elfmem {
 
 class ElfMem
 {
-    class ElfSo
+    class ElfBin
     {
     public:
-        ElfSo(const void* base_addr);
-        ~ElfSo() = default;
+        ElfBin(uintptr_t beg_addr, uintptr_t end_addr, const char* name = "");
+        ~ElfBin() = default;
 
         inline const char* getName() const {
             return m_name;
         }
 
-        const void* hookRel(const char* proc_name, const void* subst_addr) const;
+        const void* findSymByName(const char* sym_name) const;
+        const char* findSymByAddr(uintptr_t addr, uintptr_t* sym_addr = nullptr) const;
 
-        const void* findSym(const char* proc_name) const;
+    protected:
+        uintptr_t m_beg_addr;
+        uintptr_t m_end_addr;
+        const char* m_name;
+        const ELF_EHDR_T* m_ehdr;
+        const ELF_PHDR_T* m_phdr;
+        const ELF_DYN_T* m_strtab;
+        const char* m_strings;
+        const ELF_DYN_T* m_symtab;
+        const ELF_SYM_T* m_symbols;
+    };
 
+    class ElfSo : public ElfBin
+    {
+    public:
+        ElfSo(uintptr_t beg_addr, uintptr_t end_addr);
+        ~ElfSo() = default;
 
-
-//        bool hookSym(const char* proc_name, const void* subst_addr) const;
-//        void printSym() const;
+        const void* hookRel(const char* sym_name, const void* subst_addr) const;
 
     private:
 
         template <typename RELT>
         const void* hookRelTab(const RELT* reltab, int relcnt, uint64_t reltype,
-                               const char* proc_name, const void* subst_addr) const {
+                               const char* sym_name, const void* subst_addr) const {
              assert(reltab);
-             assert(proc_name);
+             assert(sym_name);
              assert(subst_addr);
 
             const void* res = nullptr;
@@ -54,7 +68,7 @@ class ElfMem
                 if (ELF_ST_BIND(sym->st_info) != STB_GLOBAL || ELF_ST_TYPE(sym->st_info) != STT_FUNC)
                     continue;
 
-                if (strcmp((const char*)(m_strings + sym->st_name), proc_name) == 0) {
+                if (strcmp((const char*)(m_strings + sym->st_name), sym_name) == 0) {
                     off_t off = m_ehdr->e_type == ET_DYN ? (off_t)m_ehdr : 0;
                     const void* ptr = (const void*)(off + reltab->r_offset);
                     res = (const void*)(*(uintptr_t*)(ptr));
@@ -65,40 +79,28 @@ class ElfMem
             return res;
         }
 
-//        static void rewriteProc(void* proc_addr, const void* buff, size_t size);
-//        bool rewriteProc(void* proc_addr, const void* subst_addr) const;
-
-        const ELF_EHDR_T* m_ehdr;
-        const ELF_PHDR_T* m_phdr;
-        const ELF_DYN_T* m_strtab;
-        const char* m_strings;
-        const char* m_name;
-        const ELF_DYN_T* m_symtab;
-        const ELF_SYM_T* m_symbols;
         int m_reltype;
     };
 
 public:
-    ElfMem();
-    virtual ~ElfMem() = default;
+    ElfMem(const std::string& exe_name);
+    virtual ~ElfMem() {if (m_bin) delete m_bin;}
 
     static Machine getMachine();
     static MachineType getMachineType();
     static EncodingType getEncodingType();
 
-    const void* soHookRel(const char* so_name, const char* proc_name, const void* subst_addr) const;
+    const void* findSymByName(const char* bin_name, const char* sym_name) const;
+    const char* findSymByAddr(uintptr_t addr, uintptr_t* sym_addr = nullptr) const;
 
-    const void* soFindSym(const char* so_name, const char* proc_name) const;
-
-
-//    bool soHookSym(const char* so_name, const char* proc_name, const void* subst_addr) const;
-//    void soPrintSym(const char* so_name) const;
-
+    const void* hookRel(const char* so_name, const char* sym_name, const void* subst_addr) const;
 
 private:
-    void makeSoList();
+    void makeBinList();
 
-    std::list<ElfSo> m_solist;
+    std::string m_exe_name;
+    ElfBin* m_bin;
+    std::list<ElfSo> m_so_list;
 };
 
 } // namespace ns_elfmem

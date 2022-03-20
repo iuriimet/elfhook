@@ -12,12 +12,15 @@ extern "C" {
 struct elffuzz;
 typedef struct elffuzz elffuzz_t;
 
-elffuzz_t* elffuzz_create(const char* so_name, const char* proc_name);
+elffuzz_t* elffuzz_create(const char* exe_name, const char* so_name, const char* proc_name);
 void elffuzz_destroy(elffuzz_t* obj);
 
-bool elffuzz_add_hook(elffuzz_t* obj, const char* so_name, const char* proc_name, const void* subst_addr, size_t* hook_id);
-bool elffuzz_del_hook(elffuzz_t* obj, size_t hook_id);
-bool elffuzz_check_hook(elffuzz_t* obj, size_t hook_id);
+const void* elffuzz_add_hook(elffuzz_t* obj, const char* so_name, const char* sym_name, const void* subst_addr);
+void elffuzz_del_hook(elffuzz_t* obj, const void* hook_addr);
+
+//bool elffuzz_add_hook(elffuzz_t* obj, const char* so_name, const char* proc_name, const void* subst_addr, size_t* hook_id);
+//bool elffuzz_del_hook(elffuzz_t* obj, size_t hook_id);
+//bool elffuzz_check_hook(elffuzz_t* obj, size_t hook_id);
 
 #ifdef __cplusplus
 }
