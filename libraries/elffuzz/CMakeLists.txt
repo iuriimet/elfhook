@@ -9,12 +9,14 @@ project("elffuzz"
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(${PROJECT_NAME} SHARED)
+add_library(${PROJECT_NAME} STATIC)
 
 target_sources(${PROJECT_NAME}
     PRIVATE
         src/elffuzz.cpp
         src/libelffuzz.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../elfmem/src/elfmem.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../elfmem/src/elfutils.cpp
 )
 
 include(FindPkgConfig)
@@ -27,6 +29,7 @@ target_include_directories(${PROJECT_NAME}
         # where the library itself will look for its internal headers
 	${LIB_DEPS_INCLUDE_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/inc
+        ${CMAKE_CURRENT_SOURCE_DIR}/../elfmem/inc
 	${CMAKE_CURRENT_SOURCE_DIR}/../../common/inc
     PUBLIC
         # where top-level project will look for the library's public headers
@@ -35,10 +38,9 @@ target_include_directories(${PROJECT_NAME}
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-target_link_libraries(${PROJECT_NAME} ${LIB_DEPS_LIBRARIES} elfmem)
-
 # without it public headers won't get installed
 set(public_headers
+    inc/elffuzz_def.h
     inc/libelffuzz.h
 )
 
@@ -64,8 +66,8 @@ install(TARGETS ${PROJECT_NAME}
     EXPORT "${PROJECT_NAME}Targets"
     # these get default values from GNUInstallDirs, no need to set them
     #RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} # bin
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} # lib
-    #ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} # lib
+    #LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} # lib
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} # lib
     # except for public headers, as we want them to be inside a library folder
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME} # include/SomeProject
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} # include

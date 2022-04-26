@@ -6,9 +6,14 @@ extern "C"
 {
 #endif
 
-void test(void);
+void test_11(void);
 
-void test_2(void);
+void test_12(void);
+
+void test_13(void);
+void test_14(void);
+
+void test_21(void);
 
 #ifdef __cplusplus
 }

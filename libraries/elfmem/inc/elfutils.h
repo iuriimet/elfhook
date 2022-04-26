@@ -25,7 +25,8 @@ public:
 
     static const ELF_DYN_T* findDynTAB(const ELF_EHDR_T* ehdr, const ELF_PHDR_T* phdr, int type);
 
-private:
+//    static void printComm();
+
 //    static void printMaps();
 
 //    static void printEHDR(const ELF_EHDR_T* ehdr);
@@ -38,6 +39,8 @@ private:
 
 //    static void printRelTAB(const ELF_REL_T* rel);
 //    static void printRelaTAB(const ELF_RELA_T* rela);
+
+    static void printStack(const CallStack* stack);
 };
 
 } // namespace ns_elfmem

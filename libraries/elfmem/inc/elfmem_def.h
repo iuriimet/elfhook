@@ -151,4 +151,23 @@ typedef enum
 #define CHECK_SYM_ST_TYPE(v)    ((v) != STT_HIPROC)
 #define CHECK_SYM_ATTR(attr)    (CHECK_SYM_ST_BIND(ELF_ST_BIND(attr)) && CHECK_SYM_ST_TYPE(ELF_ST_TYPE(attr)))
 
+typedef struct
+{
+    const char* m_object;
+    const char* m_symbol;
+    uintptr_t m_address;
+} SymInfo;
+
+typedef struct
+{
+    SymInfo m_info;
+    off_t m_offset;
+} StackItem;
+
+typedef struct
+{
+    size_t m_nitems;
+    StackItem* m_items;
+} CallStack;
+
 #endif /* __ELFMEM_DEF_H__ */

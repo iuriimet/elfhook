@@ -39,6 +39,20 @@ const ELF_DYN_T* ElfUtils::findDynTAB(const ELF_EHDR_T* ehdr, const ELF_PHDR_T* 
     return (res->d_tag == type) ? res : nullptr;
 }
 
+//void ElfUtils::printComm()
+//{
+//    FILE* file = NULL;
+//    if((file = fopen("/proc/self/comm", "r")) != NULL)
+//    {
+//        char buf[1024] = {0};
+//        LOG_D("-------------------- COMM ------------------------");
+//        while(fgets(buf, sizeof(buf), file))
+//            LOG_D("%s", buf);
+//        LOG_D("-------------------- COMM ------------------------");
+//        fclose(file);
+//    }
+//}
+
 //void ElfUtils::printMaps()
 //{
 //    FILE* file = NULL;
@@ -117,7 +131,7 @@ const ELF_DYN_T* ElfUtils::findDynTAB(const ELF_EHDR_T* ehdr, const ELF_PHDR_T* 
 //    LOG_D("-------------------- SYM -------------------------");
 //}
 
-//static void printRelTAB(const ELF_REL_T* rel)
+//void ElfUtils::printRelTAB(const ELF_REL_T* rel)
 //{
 //    LOG_D("-------------------- REL ------------------------");
 //    LOG_D("table addr:     %p", (void*)rel);
@@ -128,7 +142,7 @@ const ELF_DYN_T* ElfUtils::findDynTAB(const ELF_EHDR_T* ehdr, const ELF_PHDR_T* 
 //    LOG_D("ELF_R_SYM:      %ld", ELF_R_SYM(rel->r_info));
 //    LOG_D("-------------------- REL ------------------------");
 //}
-//static void printRelaTAB(const ELF_RELA_T* rela)
+//void ElfUtils::printRelaTAB(const ELF_RELA_T* rela)
 //{
 //    LOG_D("-------------------- RELA ------------------------");
 //    LOG_D("table addr:     %p", (void*)rela);
@@ -140,5 +154,18 @@ const ELF_DYN_T* ElfUtils::findDynTAB(const ELF_EHDR_T* ehdr, const ELF_PHDR_T* 
 //    LOG_D("r_addend:       0x%lx", rela->r_addend);
 //    LOG_D("-------------------- RELA ------------------------");
 //}
+
+void ElfUtils::printStack(const CallStack* stack)
+{
+    LOG_D("-------------------- STACK ------------------------");
+    for (size_t i = 0; i < stack->m_nitems; i++) {
+        LOG_D("Stack item:");
+        LOG_D("\tobj:          %s", stack->m_items[i].m_info.m_object);
+        LOG_D("\tsym:          %s", stack->m_items[i].m_info.m_symbol);
+        LOG_D("\taddr:         %p", (void*)stack->m_items[i].m_info.m_address);
+        LOG_D("\toff:          0x%lx", stack->m_items[i].m_offset);
+    }
+    LOG_D("-------------------- STACK ------------------------");
+}
 
 } // namespace ns_elfmem

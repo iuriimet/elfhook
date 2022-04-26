@@ -11,6 +11,7 @@
 
 #include "elfmem_def.h"
 
+
 namespace ns_elfmem {
 
 class ElfMem
@@ -19,14 +20,12 @@ class ElfMem
     {
     public:
         ElfBin(uintptr_t beg_addr, uintptr_t end_addr, const char* name = "");
-        ~ElfBin() = default;
+        virtual ~ElfBin() = default;
 
-        inline const char* getName() const {
-            return m_name;
-        }
+        inline const char* getName() const {return m_name;}
 
-        const void* findSymByName(const char* sym_name) const;
-        const char* findSymByAddr(uintptr_t addr, uintptr_t* sym_addr = nullptr) const;
+        virtual const void* findSymByName(const char* sym_name) const;
+        virtual const char* findSymByAddr(uintptr_t addr, uintptr_t* sym_addr = nullptr) const;
 
     protected:
         uintptr_t m_beg_addr;
@@ -45,6 +44,9 @@ class ElfMem
     public:
         ElfSo(uintptr_t beg_addr, uintptr_t end_addr);
         ~ElfSo() = default;
+
+        const void* findSymByName(const char* sym_name) const override;
+        const char* findSymByAddr(uintptr_t addr, uintptr_t* sym_addr = nullptr) const override;
 
         const void* hookRel(const char* sym_name, const void* subst_addr) const;
 
@@ -83,22 +85,28 @@ class ElfMem
     };
 
 public:
-    ElfMem(const std::string& exe_name);
+    ElfMem();
     virtual ~ElfMem() {if (m_bin) delete m_bin;}
 
+    const char* getName() {return m_name.c_str();}
     static Machine getMachine();
     static MachineType getMachineType();
     static EncodingType getEncodingType();
 
     const void* findSymByName(const char* bin_name, const char* sym_name) const;
-    const char* findSymByAddr(uintptr_t addr, uintptr_t* sym_addr = nullptr) const;
+    const char* findSymByAddr(uintptr_t addr, SymInfo* info) const;
 
     const void* hookRel(const char* so_name, const char* sym_name, const void* subst_addr) const;
 
+    int callStack(CallStack* stack) const;
+
 private:
+    static std::string readComm();
     void makeBinList();
 
-    std::string m_exe_name;
+//    static std::string demangle(const std::string& name);
+
+    std::string m_name;
     ElfBin* m_bin;
     std::list<ElfSo> m_so_list;
 };
