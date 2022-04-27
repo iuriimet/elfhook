@@ -12,6 +12,7 @@
 
 void test_11(void)
 {
+    // qwe
     puts("libtest:test_11 - original puts()");
 }
 
@@ -25,6 +26,8 @@ void test_12(void)
     } else {
         std::cout << "libtest:test_12 - alloc : failed" << std::endl;
     }
+
+    // qwe
 }
 
 struct test_struct_13 {
