@@ -160,6 +160,7 @@ static elffuzz_t* s_elf = nullptr;
 
 int main()
 {
+
     // to link libtest
     test_21();
 
