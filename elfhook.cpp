@@ -22,6 +22,7 @@ static elfmem_t* s_elf = nullptr;
 
 int hooked_puts_1(const char* s)
 {
+
     puts(s);
     puts("!!! HOOKED 111 !!!");
     StackItem si[12];
