@@ -11,6 +11,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(${PROJECT_NAME} SHARED)
 
+if (DEFINED __TIZEN__)
+    set(CMAKE_C_FLAGS_DEBUG	"${CMAKE_C_FLAGS_DEBUG} -D__TIZEN__ ")
+    set(CMAKE_CXX_FLAGS_DEBUG	"${CMAKE_CXX_FLAGS_DEBUG} -D__TIZEN__ ")
+    set(CMAKE_C_FLAGS_RELEASE	"${CMAKE_C_FLAGS_RELEASE} -D__TIZEN__ ")
+    set(CMAKE_CXX_FLAGS_RELEASE	"${CMAKE_CXX_FLAGS_RELEASE} -D__TIZEN__ ")
+endif()
+
 target_sources(${PROJECT_NAME}
     PRIVATE
         libtest.cpp
@@ -46,6 +53,10 @@ endif()
 
 # for CMAKE_INSTALL_LIBDIR, CMAKE_INSTALL_BINDIR, CMAKE_INSTALL_INCLUDEDIR and others
 include(GNUInstallDirs)
+
+if(DEFINED INSTALLDIR)
+    set(CMAKE_INSTALL_PREFIX ${INSTALLDIR})
+endif()
 
 # note that ${public_headers} should be in quotes
 set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "${public_headers}")

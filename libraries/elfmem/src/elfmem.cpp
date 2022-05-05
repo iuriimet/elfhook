@@ -264,7 +264,7 @@ int ElfMem::callStack(CallStack* stack) const
     size_t nptrs = backtrace(buffer, BT_BUF_SIZE);
     stack->m_nitems = (stack->m_nitems < nptrs) ? stack->m_nitems : nptrs;
 
-    for (int i = 0; i < stack->m_nitems; i++) {
+    for (size_t i = 0; i < stack->m_nitems; i++) {
         stack->m_items[i].m_info.m_object = stack->m_items[i].m_info.m_symbol = "unknown";
         stack->m_items[i].m_info.m_address = (uintptr_t)buffer[i];
 

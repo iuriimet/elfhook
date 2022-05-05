@@ -12,7 +12,6 @@
 
 
 
-/*
 // ZZZ for elfmem lib
 #include "elfmem_def.h"
 #include "libelfmem.h"
@@ -28,7 +27,7 @@ int hooked_puts_1(const char* s)
     StackItem si[12];
     CallStack st{.m_nitems = 12, .m_items = si};
     elfmem_callstack(s_elf, &st);
-    for (int i = 0; i < st.m_nitems; i++){
+    for (size_t i = 0; i < st.m_nitems; i++){
         LOG_D("stack item : obj = %s, sym = %s, add = %p, off = %ld", st.m_items[i].m_info.m_object, st.m_items[i].m_info.m_symbol, (const void*)st.m_items[i].m_info.m_address, st.m_items[i].m_offset);
     }
     return 0;
@@ -41,7 +40,7 @@ int hooked_puts_2(const char* s)
     StackItem si[12];
     CallStack st{.m_nitems = 12, .m_items = si};
     elfmem_callstack(s_elf, &st);
-    for (int i = 0; i < st.m_nitems; i++){
+    for (size_t i  = 0; i < st.m_nitems; i++){
         LOG_D("stack item : obj = %s, sym = %s, add = %p, off = %ld", st.m_items[i].m_info.m_object, st.m_items[i].m_info.m_symbol, (const void*)st.m_items[i].m_info.m_address, st.m_items[i].m_offset);
     }
     return 0;
@@ -53,7 +52,7 @@ void* hooked_malloc_1(size_t size)
     StackItem si[12];
     CallStack st{.m_nitems = 12, .m_items = si};
     elfmem_callstack(s_elf, &st);
-    for (int i = 0; i < st.m_nitems; i++){
+    for (size_t i = 0; i < st.m_nitems; i++){
         LOG_D("stack item : obj = %s, sym = %s, add = %p, off = %ld", st.m_items[i].m_info.m_object, st.m_items[i].m_info.m_symbol, (const void*)st.m_items[i].m_info.m_address, st.m_items[i].m_offset);
     }
     std::cout << "!!! hooked_malloc_1 END !!!" << std::endl;
@@ -66,7 +65,7 @@ void* hooked_malloc_2(size_t size)
     StackItem si[16];
     CallStack st{.m_nitems = 16, .m_items = si};
     elfmem_callstack(s_elf, &st);
-    for (int i = 0; i < st.m_nitems; i++){
+    for (size_t i = 0; i < st.m_nitems; i++){
         LOG_D("stack item : obj = %s, sym = %s, add = %p, off = %ld", st.m_items[i].m_info.m_object, st.m_items[i].m_info.m_symbol, (const void*)st.m_items[i].m_info.m_address, st.m_items[i].m_offset);
     }
     std::cout << "!!! hooked_malloc_2 END !!!" << std::endl;
@@ -115,12 +114,12 @@ int main()
         test_12();
 
         // hook 3
-        const void* orig_addr_2 = elfmem_hook_reltab(s_elf, "libstdc++.so.6", "malloc", (const void*)hooked_malloc_1);
+        const void* orig_addr_2 = elfmem_hook_reltab(s_elf, "libstdc++.so", "malloc", (const void*)hooked_malloc_1);
         LOG_D("Orig Addr %p : Hook Addr %p", (const void*)orig_addr_2, (const void*)hooked_malloc_1);
         test_12();
 
         // restore original
-        const void* hook_addr_21 = elfmem_hook_reltab(s_elf, "libstdc++.so.6", "malloc", (const void*)orig_addr_2);
+        const void* hook_addr_21 = elfmem_hook_reltab(s_elf, "libstdc++.so", "malloc", (const void*)orig_addr_2);
         LOG_D("Hook Addr %p : Orig Addr %p ", (const void*)hook_addr_21, (const void*)orig_addr_2);
         test_12();
 
@@ -131,13 +130,13 @@ int main()
         test_13();
 
         // hook 4
-        const void* orig_addr_3 = elfmem_hook_reltab(s_elf, "libstdc++.so.6", "malloc", (const void*)hooked_malloc_2);
+        const void* orig_addr_3 = elfmem_hook_reltab(s_elf, "libstdc++.so", "malloc", (const void*)hooked_malloc_2);
         LOG_D("Orig Addr %p : Hook Addr %p", (const void*)orig_addr_3, (const void*)hooked_malloc_2);
         test_13();
         test_14();
 
         // restore original
-        const void* hook_addr_31 = elfmem_hook_reltab(s_elf, "libstdc++.so.6", "malloc", (const void*)orig_addr_3);
+        const void* hook_addr_31 = elfmem_hook_reltab(s_elf, "libstdc++.so", "malloc", (const void*)orig_addr_3);
         LOG_D("Hook Addr %p : Orig Addr %p ", (const void*)hook_addr_31, (const void*)orig_addr_3);
         test_13();
 
@@ -147,12 +146,12 @@ int main()
 
     return 0;
 }
-*/
 
 
 
 
 
+/*
 // ZZZ for elfhook lib
 #include "elffuzz_def.h"
 #include "libelffuzz.h"
@@ -173,6 +172,7 @@ int main()
         test_21();
         elffuzz_rem_malloc_hook(s_elf);
         elffuzz_rem_calloc_hook(s_elf);
+        test_21();
 
         elffuzz_set_malloc_hook(s_elf, 1);
         elffuzz_set_calloc_hook(s_elf, 0);
@@ -182,4 +182,4 @@ int main()
     }
     return 0;
 }
-
+*/
