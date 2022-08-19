@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <list>
 #include <string>
+#include <cassert>
 
 #include "elfmem.h"
 #include "elffuzz_def.h"
@@ -53,14 +54,12 @@ public:
 
     std::list<hookData> setHooks(const std::list<hookProcInfo>& info) const;
     void delHooks(const std::list<hookData>& data) const;
-    /*
-    inline bool isHookInstalled() const {
-        for (const auto& it : m_hookData) {
+    static bool isHookInstalled(const std::list<hookData>& data) {
+        for (const auto& it : data) {
             if (it.checkState()) return true;
         }
         return false;
     }
-    */
 
     bool checkCallStack();
 

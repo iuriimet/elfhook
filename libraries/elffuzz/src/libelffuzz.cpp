@@ -218,6 +218,9 @@ void elffuzz_set_syscall_hooks(elffuzz_t* obj, int hook_call_idx)
 {
     LOG_D("ELFFUZZ : elffuzz_set_syscall_hooks : hook_call_idx = %d", hook_call_idx);
     if (obj && obj->obj) {
+        if (ns_elffuzz::ElfFuzz::isHookInstalled(s_syscall_hooks_data)) {
+            elffuzz_del_syscall_hooks(obj);
+        }
         s_syscall_hooks_data = (static_cast<ns_elffuzz::ElfFuzz*>(obj->obj))->setHooks(s_syscall_hooks_info);
         s_syscall_hooks_call_idx = hook_call_idx;
         s_syscall_hooks_call_cnt = 0;
