@@ -155,17 +155,17 @@ const ELF_DYN_T* ElfUtils::findDynTAB(const ELF_EHDR_T* ehdr, const ELF_PHDR_T* 
 //    LOG_D("-------------------- RELA ------------------------");
 //}
 
-void ElfUtils::printStack(const CallStack* stack)
-{
-    LOG_D("-------------------- STACK ------------------------");
-    for (size_t i = 0; i < stack->m_nitems; i++) {
-        LOG_D("Stack item:");
-        LOG_D("\tobj:          %s", stack->m_items[i].m_info.m_object);
-        LOG_D("\tsym:          %s", stack->m_items[i].m_info.m_symbol);
-        LOG_D("\taddr:         %p", (void*)stack->m_items[i].m_info.m_address);
-        LOG_D("\toff:          0x%lx", stack->m_items[i].m_offset);
-    }
-    LOG_D("-------------------- STACK ------------------------");
-}
+//void ElfUtils::printStack(const CallStack* stack)
+//{
+//    LOG_D("-------------------- STACK ------------------------");
+//    for (size_t i = 0; i < stack->m_nitems; i++) {
+//        LOG_D("Stack item:");
+//        LOG_D("\tobj:          %s", stack->m_items[i].m_info.m_object);
+//        LOG_D("\tsym:          %s", stack->m_items[i].m_info.m_symbol);
+//        LOG_D("\taddr:         %p", (void*)stack->m_items[i].m_info.m_address);
+//        LOG_D("\toff:          0x%lx", stack->m_items[i].m_offset);
+//    }
+//    LOG_D("-------------------- STACK ------------------------");
+//}
 
 } // namespace ns_elfmem

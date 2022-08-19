@@ -9,9 +9,60 @@
 
 #include "logger.h"
 
+#include "elffuzz_def.h"
+#include "libelffuzz.h"
+
+static elffuzz_t* s_elf = nullptr;
+
+int main()
+{
+    s_elf = elffuzz_init("libtest.so");
+    if (s_elf) {
+
+        std::cout << "\n\nZZZ ======================================================= TEST OPEN BEG" << std::endl;
+        test_open_close();
+        elffuzz_set_syscall_hooks(s_elf, 0);
+        test_open_close();
+        elffuzz_del_syscall_hooks(s_elf);
+        test_open_close();
+        std::cout << "ZZZ ======================================================= TEST OPEN END" << std::endl;
+
+        std::cout << "\n\nZZZ ======================================================= TEST CLOSE BEG" << std::endl;
+        test_open_close();
+        elffuzz_set_syscall_hooks(s_elf, 1);
+        test_open_close();
+        elffuzz_del_syscall_hooks(s_elf);
+        test_open_close();
+        std::cout << "ZZZ ======================================================= TEST CLOSE END" << std::endl;
+
+        std::cout << "\n\nZZZ ======================================================= TEST READ BEG" << std::endl;
+        test_read();
+        elffuzz_set_syscall_hooks(s_elf, 1);
+        test_read();
+        elffuzz_del_syscall_hooks(s_elf);
+        test_read();
+        std::cout << "ZZZ ======================================================= TEST READ END" << std::endl;
+
+        std::cout << "\n\nZZZ ======================================================= TEST WRITE BEG" << std::endl;
+        test_write('a');
+        elffuzz_set_syscall_hooks(s_elf, 1);
+        test_write('b');
+        elffuzz_del_syscall_hooks(s_elf);
+        test_write('c');
+        std::cout << "ZZZ ======================================================= TEST WRITE END" << std::endl;
+
+
+        elffuzz_done(s_elf);
+    }
+    return 0;
+}
 
 
 
+
+
+
+/*
 // ZZZ for elfmem lib
 #include "elfmem_def.h"
 #include "libelfmem.h"
@@ -146,6 +197,7 @@ int main()
 
     return 0;
 }
+*/
 
 
 

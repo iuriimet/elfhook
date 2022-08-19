@@ -93,6 +93,12 @@ public:
     static MachineType getMachineType();
     static EncodingType getEncodingType();
 
+    std::list<std::string> soNames() const {
+        std::list<std::string> res;
+        for (const auto& it : m_so_list) res.push_back(it.getName());
+        return res;
+    }
+
     const void* findSymByName(const char* bin_name, const char* sym_name) const;
     const char* findSymByAddr(uintptr_t addr, SymInfo* info) const;
 

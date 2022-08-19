@@ -40,7 +40,7 @@ public:
 //    static void printRelTAB(const ELF_REL_T* rel);
 //    static void printRelaTAB(const ELF_RELA_T* rela);
 
-    static void printStack(const CallStack* stack);
+//    static void printStack(const CallStack* stack);
 };
 
 } // namespace ns_elfmem
