@@ -61,16 +61,14 @@ rm -rf %{buildroot}
 
 
 
-%package    elfmem
+%package -n elfmem
 Version:    1.0.0
-Release:    1
 Summary:    bla-bla
-Group:      Base
 
-%description elfmem
+%description -n elfmem
 bla-bla
 
-%files elfmem
+%files -n elfmem
 %attr(0644,root,root) %{_lib_dir}/%{_libelfmem_name}
 %attr(0644,root,root) %{_inc_dir}/elfmem/*.h
 %manifest %{_manifestdir}/elfmem.manifest
@@ -78,16 +76,14 @@ bla-bla
 
 
 
-%package    elffuzz
+%package -n elffuzz
 Version:    1.0.0
-Release:    1
 Summary:    bla-bla
-Group:      Base
 
-%description elffuzz
+%description -n elffuzz
 bla-bla
 
-%files elffuzz
+%files -n elffuzz
 %attr(0644,root,root) %{_lib_dir}/%{_libelffuzz_name}
 %attr(0644,root,root) %{_inc_dir}/elffuzz/*.h
 %manifest %{_manifestdir}/elffuzz.manifest
