@@ -14,10 +14,10 @@ extern "C" {
 struct elffuzz;
 typedef struct elffuzz elffuzz_t;
 
-elffuzz_t* elffuzz_init(const char* so_name, const char* proc_name = "");
+elffuzz_t* elffuzz_init(const char* so_name, const char* proc_name);
 void elffuzz_done(elffuzz_t* obj);
 
-void elffuzz_set_syscall_hooks(elffuzz_t* obj, int hook_call_idx = 0);
+void elffuzz_set_syscall_hooks(elffuzz_t* obj, int hook_call_idx);
 void elffuzz_del_syscall_hooks(elffuzz_t* obj);
 
 #ifdef __cplusplus

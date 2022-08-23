@@ -86,6 +86,10 @@ static ssize_t cb_syscall_write(int fd, const void* buf, size_t count)
 
 
 
+
+
+
+
 /*
 static long elffuzz_syscall_hook_cb(long number, ...)
 {
@@ -193,7 +197,9 @@ elffuzz_t* elffuzz_init(const char* so_name, const char* proc_name)
     if (!s_elffuzz) {
         try {
             s_elffuzz = new elffuzz_t();
-            s_elffuzz->obj = new ns_elffuzz::ElfFuzz(so_name, proc_name);
+            s_elffuzz->obj = proc_name ?
+                        new ns_elffuzz::ElfFuzz(so_name, proc_name) :
+                        new ns_elffuzz::ElfFuzz(so_name);
         } catch (const std::exception& e) {
             LOG_E("%s", e.what());
             elffuzz_done(s_elffuzz);
@@ -235,6 +241,11 @@ void elffuzz_del_syscall_hooks(elffuzz_t* obj)
         s_syscall_hooks_call_idx = -1;
     }
 }
+
+
+
+
+
 
 
 
