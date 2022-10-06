@@ -42,7 +42,7 @@ class ElfMem
     class ElfSo : public ElfBin
     {
     public:
-        ElfSo(uintptr_t beg_addr, uintptr_t end_addr);
+        ElfSo(uintptr_t beg_addr, uintptr_t end_addr, uintptr_t wmem_beg_addr, uintptr_t wmem_end_addr);
         ~ElfSo() = default;
 
         const void* findSymByName(const char* sym_name) const override;
@@ -73,14 +73,18 @@ class ElfMem
                 if (strcmp((const char*)(m_strings + sym->st_name), sym_name) == 0) {
                     off_t off = m_ehdr->e_type == ET_DYN ? (off_t)m_ehdr : 0;
                     const void* ptr = (const void*)(off + reltab->r_offset);
-                    res = (const void*)(*(uintptr_t*)(ptr));
-                    *(uintptr_t*)(ptr) = (uintptr_t)subst_addr;
+                    if (ptr >= (const void*)m_wmem_beg_addr && ptr < (const void*)m_wmem_end_addr) {
+                        res = (const void*)(*(uintptr_t*)(ptr));
+                        *(uintptr_t*)(ptr) = (uintptr_t)subst_addr;
+                    }
                 }
             }
 
             return res;
         }
 
+        uintptr_t m_wmem_beg_addr;
+        uintptr_t m_wmem_end_addr;
         int m_reltype;
     };
 
@@ -109,6 +113,9 @@ public:
 private:
     static std::string readComm();
     void makeBinList();
+    static bool findWritableSection(const char* so_name, uintptr_t& beg, uintptr_t& end);
+
+//    static bool checkPtr(const void* ptr);
 
 //    static std::string demangle(const std::string& name);
 

@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <algorithm>
 #include <string>
 #include <list>
 #include <stdexcept>
@@ -18,14 +19,29 @@ using namespace std;
 
 namespace ns_elffuzz {
 
-ElfFuzz::ElfFuzz(const string& fuzz_so, const string& fuzz_sym) :
-    m_fuzz_so(fuzz_so), m_fuzz_sym(fuzz_sym), m_elf(nullptr)
+//ElfFuzz::ElfFuzz(const string& fuzz_so, const string& fuzz_sym) :
+//    m_fuzz_so(fuzz_so), m_fuzz_sym(fuzz_sym), m_elf(nullptr)
+//{
+//    m_elf = new ns_elfmem::ElfMem();
+//    if (!m_elf) {
+//        throw runtime_error(string("Can't create elfmem object"));
+//    }
+//    m_so_info = m_elf->soNames();
+//}
+
+static const char* s_skipped_so[] = {"libdlog.so", "libprotobuf.so"};
+
+ElfFuzz::ElfFuzz() :
+    m_fuzz_so(""), m_fuzz_sym(""), m_elf(nullptr)
 {
     m_elf = new ns_elfmem::ElfMem();
     if (!m_elf) {
         throw runtime_error(string("Can't create elfmem object"));
     }
     m_so_info = m_elf->soNames();
+    for (const char* so : s_skipped_so) {
+        m_so_info.remove_if([so](string& s){return s.find(so) != string::npos;});
+    }
 }
 
 ElfFuzz::ElfFuzz(ElfFuzz&& obj) :
@@ -76,19 +92,19 @@ void ElfFuzz::delHooks(const std::list<hookData>& data) const
     }
 }
 
-bool ElfFuzz::checkCallStack()
-{
-    StackItem si[32];
-    CallStack st{.m_nitems = 32, .m_items = si};
-    m_elf->callStack(&st);
-//    ns_elfmem::ElfUtils::printStack(&st);
-    for (size_t i = 0; i < st.m_nitems; i++) {
-        if (strstr(st.m_items[i].m_info.m_object, m_fuzz_so.c_str())) {
-            if (m_fuzz_sym.empty() ||
-                    strstr(st.m_items[i].m_info.m_symbol, m_fuzz_sym.c_str())) return true;
-        }
-    }
-    return false;
-}
+//bool ElfFuzz::checkCallStack()
+//{
+//    StackItem si[32];
+//    CallStack st{.m_nitems = 32, .m_items = si};
+//    m_elf->callStack(&st);
+////    ns_elfmem::ElfUtils::printStack(&st);
+//    for (size_t i = 0; i < st.m_nitems; i++) {
+//        if (strstr(st.m_items[i].m_info.m_object, m_fuzz_so.c_str())) {
+//            if (m_fuzz_sym.empty() ||
+//                    strstr(st.m_items[i].m_info.m_symbol, m_fuzz_sym.c_str())) return true;
+//        }
+//    }
+//    return false;
+//}
 
 } // namespace ns_elffuzz

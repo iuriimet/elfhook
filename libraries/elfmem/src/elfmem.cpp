@@ -7,6 +7,8 @@
 #include <string>
 #include <stdexcept>
 #include <cassert>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "elfmem_def.h"
 #include "elfmem.h"
@@ -86,7 +88,8 @@ const char* ElfMem::ElfBin::findSymByAddr(uintptr_t addr, uintptr_t* sym_addr) c
     return res;
 }
 
-ElfMem::ElfSo::ElfSo(uintptr_t beg_addr, uintptr_t end_addr) : ElfMem::ElfBin(beg_addr, end_addr)
+ElfMem::ElfSo::ElfSo(uintptr_t beg_addr, uintptr_t end_addr, uintptr_t wmem_beg_addr, uintptr_t wmem_end_addr)
+    : ElfMem::ElfBin(beg_addr, end_addr), m_wmem_beg_addr(wmem_beg_addr), m_wmem_end_addr(wmem_end_addr)
 {
     const ELF_DYN_T* soname = ElfUtils::findDynTAB(m_ehdr, m_phdr, DT_SONAME);
     if (!soname) {
@@ -312,10 +315,16 @@ void ElfMem::makeBinList()
                 if (strstr(buf, ".so")) {
                     LOG_D("Shared object %s was found at %p:%p", buf, (void*)beg, (void*)end);
 
-                    try {
-                        m_so_list.emplace_back(ElfSo{beg, end});
-                    } catch (const exception& e) {
-                        LOG_D("Could not create shared : %s", e.what());
+                    uintptr_t wmem_beg;
+                    uintptr_t wmem_end;
+                    if (findWritableSection(buf, wmem_beg, wmem_end)) {
+                        try {
+                            m_so_list.emplace_back(ElfSo{beg, end, wmem_beg, wmem_end});
+                        } catch (const exception& e) {
+                            LOG_D("Could not create shared : %s", e.what());
+                        }
+                    } else {
+                        LOG_D("Can't find writable section for : %s", buf);
                     }
                 } else if (strstr(buf, getName())) {
                     LOG_D("Executable %s was found at %p:%p", buf, (void*)beg, (void*)end);
@@ -332,6 +341,55 @@ void ElfMem::makeBinList()
         fclose(file);
     }
 }
+bool ElfMem::findWritableSection(const char* so_name, uintptr_t& wmem_beg, uintptr_t& wmem_end)
+{
+    bool res = false;
+
+    FILE* file = nullptr;
+    if ((file = fopen("/proc/self/maps", "r")) != NULL) {
+
+        char buf[1024] = {0};
+        uintptr_t beg;
+        uintptr_t end;
+
+        while(!res && fgets(buf, sizeof(buf), file)) {
+
+            if(strstr(buf, "rw-p") == 0)
+                continue;
+
+#ifdef __x86_64
+            if (sscanf(buf, "%lx-%lx %*s %*s %*s %*s %s", &beg, &end, buf) == 3) {
+#else
+            if (sscanf(buf, "%x-%x %*s %*s %*s %*s %s", &beg, &end, buf) == 3) {
+#endif
+                if (strcmp(buf, so_name) == 0) {
+                    LOG_D("Writible section of shared object %s was found at %p:%p", buf, (void*)beg, (void*)end);
+                    wmem_beg = beg; wmem_end = end;
+                    res = true;
+                }
+            }
+        }
+
+        fclose(file);
+    }
+
+    return res;
+}
+
+//bool ElfMem::checkPtr(const void* ptr)
+//{
+//    bool res = false;
+
+//    if (ptr) {
+//        int fd = open("/dev/random", O_WRONLY);
+//        if (fd) {
+//            if (write(fd, ptr, sizeof(ptr)) == sizeof(ptr)) res = true;
+//            close(fd);
+//        }
+//    }
+
+//    return res;
+//}
 
 //#ifdef __GNUG__
 //#include <cxxabi.h>

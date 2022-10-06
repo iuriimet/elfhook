@@ -16,7 +16,7 @@ static elffuzz_t* s_elf = nullptr;
 
 int main()
 {
-    s_elf = elffuzz_init("libtest.so", NULL);
+    s_elf = elffuzz_init();
     if (s_elf) {
 
         std::cout << "\n\nZZZ ======================================================= TEST OPEN BEG" << std::endl;

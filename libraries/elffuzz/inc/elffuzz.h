@@ -42,7 +42,8 @@ struct hookData
 class ElfFuzz
 {
 public:
-    ElfFuzz(const std::string& fuzz_so, const std::string& fuzz_sym = "");
+//    ElfFuzz(const std::string& fuzz_so, const std::string& fuzz_sym = "");
+    ElfFuzz();
 
     ElfFuzz(const ElfFuzz& obj) = delete;
     ElfFuzz& operator=(const ElfFuzz& obj) = delete;
@@ -61,7 +62,7 @@ public:
         return false;
     }
 
-    bool checkCallStack();
+//    bool checkCallStack();
 
 private:
     std::string m_fuzz_so;
