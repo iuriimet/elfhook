@@ -81,125 +81,95 @@ static int s_syscall_hooks_call_cnt = 0;
 //}
 static bool syscall_hook_triggered()
 {
-    assert(s_elffuzz);
-    assert(s_elffuzz->obj);
     return (s_syscall_hooks_call_idx == s_syscall_hooks_call_cnt++);
 }
 
 static int cb_syscall_open(const char* pathname, int flags, mode_t mode)
 {
-    assert(s_elffuzz);
-    assert(s_elffuzz->obj);
     LOG_D("ELFFUZZ : cb_syscall_open: syscall_hook_call_idx - %d, syscall_hook_call_cnt - %d",
           s_syscall_hooks_call_idx, s_syscall_hooks_call_cnt);
-    return syscall_hook_triggered() ? -1 : open(pathname, flags, mode);
+    return (s_elffuzz && s_elffuzz->obj && syscall_hook_triggered()) ? -1 : open(pathname, flags, mode);
 }
 static int cb_syscall_close(int fd)
 {
-    assert(s_elffuzz);
-    assert(s_elffuzz->obj);
     LOG_D("ELFFUZZ : cb_syscall_close: syscall_hook_call_idx - %d, syscall_hook_call_cnt - %d",
           s_syscall_hooks_call_idx, s_syscall_hooks_call_cnt);
-    return syscall_hook_triggered() ? -1 : close(fd);
+    return (s_elffuzz && s_elffuzz->obj && syscall_hook_triggered()) ? -1 : close(fd);
 }
 static ssize_t cb_syscall_read(int fd, void* buf, size_t count)
 {
-    assert(s_elffuzz);
-    assert(s_elffuzz->obj);
     LOG_D("ELFFUZZ : cb_syscall_read: syscall_hook_call_idx - %d, syscall_hook_call_cnt - %d",
           s_syscall_hooks_call_idx, s_syscall_hooks_call_cnt);
-    return syscall_hook_triggered() ? -1 : read(fd, buf, count);
+    return (s_elffuzz && s_elffuzz->obj && syscall_hook_triggered()) ? -1 : read(fd, buf, count);
 }
 static ssize_t cb_syscall_write(int fd, const void* buf, size_t count)
 {
-    assert(s_elffuzz);
-    assert(s_elffuzz->obj);
     LOG_D("ELFFUZZ : cb_syscall_write: syscall_hook_call_idx - %d, syscall_hook_call_cnt - %d",
           s_syscall_hooks_call_idx, s_syscall_hooks_call_cnt);
-    return syscall_hook_triggered() ? -1 : write(fd, buf, count);
+    return (s_elffuzz && s_elffuzz->obj && syscall_hook_triggered()) ? -1 : write(fd, buf, count);
 }
 
 static void* cb_malloc(size_t size)
 {
-    assert(s_elffuzz);
-    assert(s_elffuzz->obj);
     LOG_D("ELFFUZZ : cb_malloc: syscall_hook_call_idx - %d, syscall_hook_call_cnt - %d",
           s_syscall_hooks_call_idx, s_syscall_hooks_call_cnt);
-    return syscall_hook_triggered() ? NULL : malloc(size);
+    return (s_elffuzz && s_elffuzz->obj && syscall_hook_triggered()) ? NULL : malloc(size);
 }
 static void* cb_calloc(size_t nmemb, size_t size)
 {
-    assert(s_elffuzz);
-    assert(s_elffuzz->obj);
     LOG_D("ELFFUZZ : cb_calloc: syscall_hook_call_idx - %d, syscall_hook_call_cnt - %d",
           s_syscall_hooks_call_idx, s_syscall_hooks_call_cnt);
-    return syscall_hook_triggered() ? NULL : calloc(nmemb, size);
+    return (s_elffuzz && s_elffuzz->obj && syscall_hook_triggered()) ? NULL : calloc(nmemb, size);
 }
 static void* cb_realloc(void* ptr, size_t size)
 {
-    assert(s_elffuzz);
-    assert(s_elffuzz->obj);
     LOG_D("ELFFUZZ : cb_realloc: syscall_hook_call_idx - %d, syscall_hook_call_cnt - %d",
           s_syscall_hooks_call_idx, s_syscall_hooks_call_cnt);
-    return syscall_hook_triggered() ? NULL : realloc(ptr, size);
+    return (s_elffuzz && s_elffuzz->obj && syscall_hook_triggered()) ? NULL : realloc(ptr, size);
 }
 
 static FILE* cb_fopen(const char* pathname, const char* mode)
 {
-    assert(s_elffuzz);
-    assert(s_elffuzz->obj);
     LOG_D("ELFFUZZ : cb_fopen: syscall_hook_call_idx - %d, syscall_hook_call_cnt - %d",
           s_syscall_hooks_call_idx, s_syscall_hooks_call_cnt);
-    return syscall_hook_triggered() ? NULL : fopen(pathname, mode);
+    return (s_elffuzz && s_elffuzz->obj && syscall_hook_triggered()) ? NULL : fopen(pathname, mode);
 }
 static int cb_fclose(FILE* stream)
 {
-    assert(s_elffuzz);
-    assert(s_elffuzz->obj);
     LOG_D("ELFFUZZ : cb_fclose: syscall_hook_call_idx - %d, syscall_hook_call_cnt - %d",
           s_syscall_hooks_call_idx, s_syscall_hooks_call_cnt);
-    return syscall_hook_triggered() ? EOF : fclose(stream);
+    return (s_elffuzz && s_elffuzz->obj && syscall_hook_triggered()) ? EOF : fclose(stream);
 }
 static size_t cb_fread(void* ptr, size_t size, size_t nmemb, FILE* stream)
 {
-    assert(s_elffuzz);
-    assert(s_elffuzz->obj);
     LOG_D("ELFFUZZ : cb_fread: syscall_hook_call_idx - %d, syscall_hook_call_cnt - %d",
           s_syscall_hooks_call_idx, s_syscall_hooks_call_cnt);
-    return syscall_hook_triggered() ? 0 : fread(ptr, size, nmemb, stream);
+    return (s_elffuzz && s_elffuzz->obj && syscall_hook_triggered()) ? 0 : fread(ptr, size, nmemb, stream);
 }
 static int cb_fgetc(FILE* stream)
 {
-    assert(s_elffuzz);
-    assert(s_elffuzz->obj);
     LOG_D("ELFFUZZ : cb_fgetc: syscall_hook_call_idx - %d, syscall_hook_call_cnt - %d",
           s_syscall_hooks_call_idx, s_syscall_hooks_call_cnt);
-    return syscall_hook_triggered() ? EOF : fgetc(stream);
+    return (s_elffuzz && s_elffuzz->obj && syscall_hook_triggered()) ? EOF : fgetc(stream);
 }
 static char* cb_fgets(char* s, int n, FILE* stream)
 {
-    assert(s_elffuzz);
-    assert(s_elffuzz->obj);
     LOG_D("ELFFUZZ : cb_fgets: syscall_hook_call_idx - %d, syscall_hook_call_cnt - %d",
           s_syscall_hooks_call_idx, s_syscall_hooks_call_cnt);
-    return syscall_hook_triggered() ? NULL : fgets(s, n, stream);
+    return (s_elffuzz && s_elffuzz->obj && syscall_hook_triggered()) ? NULL : fgets(s, n, stream);
 }
 
 static char* cb_strdup(const char* s)
 {
-    assert(s_elffuzz);
-    assert(s_elffuzz->obj);
     LOG_D("ELFFUZZ : cb_strdup: syscall_hook_call_idx - %d, syscall_hook_call_cnt - %d",
           s_syscall_hooks_call_idx, s_syscall_hooks_call_cnt);
-    return syscall_hook_triggered() ? NULL : strdup(s);
+    return (s_elffuzz && s_elffuzz->obj && syscall_hook_triggered()) ? NULL : strdup(s);
 }
 static const char* cb_strchr(const char* s, int c)
 {
-    assert(s_elffuzz);
-    assert(s_elffuzz->obj);
     LOG_D("ELFFUZZ : cb_strchr: syscall_hook_call_idx - %d, syscall_hook_call_cnt - %d",
           s_syscall_hooks_call_idx, s_syscall_hooks_call_cnt);
-    return syscall_hook_triggered() ? NULL : strchr(s, c);
+    return (s_elffuzz && s_elffuzz->obj && syscall_hook_triggered()) ? NULL : strchr(s, c);
 }
 
 
