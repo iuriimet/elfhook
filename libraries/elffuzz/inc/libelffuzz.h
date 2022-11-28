@@ -18,8 +18,8 @@ typedef struct elffuzz elffuzz_t;
 elffuzz_t* elffuzz_init(void);
 void elffuzz_done(elffuzz_t* obj);
 
-void elffuzz_set_syscall_hooks(elffuzz_t* obj, int hook_call_idx);
-void elffuzz_del_syscall_hooks(elffuzz_t* obj);
+void elffuzz_set_hooks(elffuzz_t* obj, int hook_call_idx);
+void elffuzz_del_hooks(elffuzz_t* obj);
 
 #ifdef __cplusplus
 }

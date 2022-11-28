@@ -7,53 +7,95 @@
 
 #include "libtest.h"
 
-#include "logger.h"
-
+#include "common.h"
 #include "elffuzz_def.h"
 #include "libelffuzz.h"
 
-static elffuzz_t* s_elf = nullptr;
+#include "logger.h"
 
-int main()
-{
-    s_elf = elffuzz_init();
-    if (s_elf) {
+//// ZZZ move to common.h
+//#define XSTR(s) STR(s)
+//#define STR(s)  #s
 
-        std::cout << "\n\nZZZ ======================================================= TEST OPEN BEG" << std::endl;
-        test_open_close();
-        elffuzz_set_syscall_hooks(s_elf, 0);
-        test_open_close();
-        elffuzz_del_syscall_hooks(s_elf);
-        test_open_close();
-        std::cout << "ZZZ ======================================================= TEST OPEN END" << std::endl;
-
-        std::cout << "\n\nZZZ ======================================================= TEST CLOSE BEG" << std::endl;
-        test_open_close();
-        elffuzz_set_syscall_hooks(s_elf, 1);
-        test_open_close();
-        elffuzz_del_syscall_hooks(s_elf);
-        test_open_close();
-        std::cout << "ZZZ ======================================================= TEST CLOSE END" << std::endl;
-
-        std::cout << "\n\nZZZ ======================================================= TEST READ BEG" << std::endl;
-        test_read();
-        elffuzz_set_syscall_hooks(s_elf, 1);
-        test_read();
-        elffuzz_del_syscall_hooks(s_elf);
-        test_read();
-        std::cout << "ZZZ ======================================================= TEST READ END" << std::endl;
-
-        std::cout << "\n\nZZZ ======================================================= TEST WRITE BEG" << std::endl;
-        test_write('a');
-        elffuzz_set_syscall_hooks(s_elf, 1);
-        test_write('b');
-        elffuzz_del_syscall_hooks(s_elf);
-        test_write('c');
-        std::cout << "ZZZ ======================================================= TEST WRITE END" << std::endl;
-
-
-        elffuzz_done(s_elf);
+#define TEST(__prefix, __test_name, __hook_idx, ...) \
+    static void test_##__test_name(elffuzz_t* elf) {\
+        std::cout << "\n\nZZZ <<< TEST '" XSTR(__prefix) << "_" << XSTR(__test_name) << "' BEGIN" << std::endl; \
+        test_##__prefix##_##__test_name(__VA_ARGS__); \
+        elffuzz_set_hooks(elf, (__hook_idx)); \
+        test_##__prefix##_##__test_name(__VA_ARGS__); \
+        elffuzz_del_hooks(elf); \
+        test_##__prefix##_##__test_name(__VA_ARGS__); \
+        std::cout << "\n\nZZZ >>> TEST '" << XSTR(__test_name) << "' END\n\n" << std::endl; \
     }
+
+
+TEST(syscall, open, 0)
+TEST(syscall, read, 1)
+TEST(syscall, write, 1, 'a')
+TEST(syscall, pread, 1)
+TEST(syscall, pwrite, 1)
+TEST(syscall, stat, 0)
+TEST(syscall, lseek, 1)
+TEST(syscall, lseek64, 1)
+TEST(syscall, mmap, 2)
+TEST(syscall, pipe, 0)
+TEST(syscall, dup, 1)
+TEST(libc, malloc, 0)
+
+
+
+//static void test_ioctl(elffuzz_t* elf)
+//{
+//    std::cout << "\n\nZZZ ======================================================= TEST IOCTL BEG" << std::endl;
+//    test_syscall_ioctl();
+//    elffuzz_set_syscall_hooks(elf, 1);
+//    test_syscall_ioctl();
+//    elffuzz_del_syscall_hooks(elf);
+//    test_syscall_ioctl();
+//    std::cout << "ZZZ ======================================================= TEST IOCTL END\n\n" << std::endl;
+//}
+
+static void test_all(elffuzz_t* elf)
+{
+    test_open(elf);
+    test_read(elf);
+    test_write(elf);
+    test_pread(elf);
+    test_pwrite(elf);
+    test_stat(elf);
+    test_lseek(elf);
+    test_lseek64(elf);
+    test_mmap(elf);
+    test_pipe(elf);
+    test_dup(elf);
+    test_malloc(elf);
+}
+
+int main(int argc, char* argv[])
+{
+    elffuzz_t* elf = elffuzz_init();
+    if (elf) {
+        if (argc != 2) {
+            test_all(elf);
+        } else {
+            if (std::string(argv[1]) == "--open") test_open(elf);
+            else if (std::string(argv[1]) == "--read") test_read(elf);
+            else if (std::string(argv[1]) == "--write") test_write(elf);
+            else if (std::string(argv[1]) == "--pread") test_pread(elf);
+            else if (std::string(argv[1]) == "--pwrite") test_pwrite(elf);
+            else if (std::string(argv[1]) == "--stat") test_stat(elf);
+            else if (std::string(argv[1]) == "--lseek") test_lseek(elf);
+            else if (std::string(argv[1]) == "--lseek64") test_lseek64(elf);
+            else if (std::string(argv[1]) == "--mmap") test_mmap(elf);
+            else if (std::string(argv[1]) == "--pipe") test_pipe(elf);
+            else if (std::string(argv[1]) == "--dup") test_dup(elf);
+            else if (std::string(argv[1]) == "--malloc") test_malloc(elf);
+            else if (std::string(argv[1]) == "--all") test_all(elf);
+        }
+
+        elffuzz_done(elf);
+    }
+
     return 0;
 }
 
@@ -195,43 +237,6 @@ int main()
         elfmem_destroy(s_elf);
     }
 
-    return 0;
-}
-*/
-
-
-
-
-
-/*
-// ZZZ for elfhook lib
-#include "elffuzz_def.h"
-#include "libelffuzz.h"
-
-static elffuzz_t* s_elf = nullptr;
-
-int main()
-{
-
-    // to link libtest
-    test_21();
-
-    s_elf = elffuzz_init("libtest.so", "test_21");
-    if (s_elf) {
-
-        elffuzz_set_malloc_hook(s_elf, 0);
-        elffuzz_set_calloc_hook(s_elf, 1);
-        test_21();
-        elffuzz_rem_malloc_hook(s_elf);
-        elffuzz_rem_calloc_hook(s_elf);
-        test_21();
-
-        elffuzz_set_malloc_hook(s_elf, 1);
-        elffuzz_set_calloc_hook(s_elf, 0);
-        test_21();
-
-        elffuzz_done(s_elf);
-    }
     return 0;
 }
 */

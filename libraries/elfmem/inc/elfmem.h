@@ -11,6 +11,9 @@
 
 #include "elfmem_def.h"
 
+// ZZZ
+#include "logger.h"
+
 
 namespace ns_elfmem {
 
@@ -69,6 +72,12 @@ class ElfMem
                 const ELF_SYM_T* sym = (const ELF_SYM_T*)(m_symbols + ELF_R_SYM(reltab->r_info));
                 if (ELF_ST_BIND(sym->st_info) != STB_GLOBAL || ELF_ST_TYPE(sym->st_info) != STT_FUNC)
                     continue;
+
+                // ZZZ
+//                std::string zzz((const char*)(m_strings + sym->st_name));
+//                if(zzz.find("semctl") != std::string::npos)
+//                    LOG_D("ZZZ ======================= SYMMMM  %s", (const char*)(m_strings + sym->st_name));
+
 
                 if (strcmp((const char*)(m_strings + sym->st_name), sym_name) == 0) {
                     off_t off = m_ehdr->e_type == ET_DYN ? (off_t)m_ehdr : 0;

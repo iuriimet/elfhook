@@ -7,9 +7,41 @@ extern "C"
 #endif
 
 
-void test_open_close(void);
-void test_read(void);
-void test_write(char c);
+void test_syscall_open(void);
+void test_syscall_read(void);
+void test_syscall_write(char c);
+void test_syscall_pread(void);
+void test_syscall_pwrite(void);
+
+void test_syscall_stat(void);
+
+void test_syscall_lseek(void);
+void test_syscall_lseek64(void);
+
+void test_syscall_mmap(void);
+
+void test_syscall_pipe(void);
+
+void test_syscall_dup(void);
+
+void test_libc_malloc(void);
+
+
+
+
+
+
+
+
+
+
+//void test_syscall_ioctl(void);
+
+
+
+
+//void test_open_syscall(void);
+
 
 
 
