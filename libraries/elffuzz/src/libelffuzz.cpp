@@ -361,7 +361,7 @@ void elffuzz_set_hooks(elffuzz_t* obj, int hook_call_idx)
 }
 void elffuzz_del_hooks(elffuzz_t* obj)
 {
-    LOG_D("ELFFUZZ : elffuzz_del_syscall_hooks");
+    LOG_D("ELFFUZZ : elffuzz_del_hooks");
     if (obj && obj->obj) {
         del_libc_hooks(obj);
         del_syscall_hooks(obj);
