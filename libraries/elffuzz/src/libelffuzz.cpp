@@ -8,9 +8,12 @@
 
 #include <stdio.h>
 #include <fcntl.h>
+#include <linux/aio_abi.h>
+#include <linux/module.h>
 #include <poll.h>
 #include <signal.h>
 #include <string.h>
+#include <sys/file.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/msg.h>
@@ -19,7 +22,8 @@
 #include <sys/shm.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
-//#include <sys/syscall.h>
+#include <sys/syscall.h>
+#include <sys/uio.h>
 #include <unistd.h>
 
 #include "common.h"
@@ -170,14 +174,21 @@ CB_SYSCALL4(int, msgsnd, -1, int, msqid, const void*, msgp, size_t, msgsz, int, 
 CB_SYSCALL5(ssize_t, msgrcv, -1, int, msqid, void*, msgp, size_t, msgsz, long, msgtyp, int, msgflg)
 CB_SYSCALL3(int, msgctl, -1, int, msqid, int, cmd, struct msqid_ds*, buf)
 
-//[ 72] = { 3,	TD,		SEN(fcntl),			"fcntl"			},
-//[ 73] = { 2,	TD,		SEN(flock),			"flock"			},
-//[ 74] = { 1,	TD,		SEN(fsync),			"fsync"			},
-//[ 75] = { 1,	TD,		SEN(fdatasync),			"fdatasync"		},
-//[ 76] = { 2,	TF,		SEN(truncate),			"truncate"		},
-//[ 77] = { 2,	TD,		SEN(ftruncate),			"ftruncate"		},
-//SYSCALL_DEFINE3(fcntl, unsigned int, fd, unsigned int, cmd, unsigned long, arg)
-//int fcntl(int fd, int cmd, ... /* arg */ );
+CB_SYSCALL3(int, fcntl, -1, int, fd, int, cmd, long, arg)
+CB_SYSCALL2(int, flock, -1, int, fd, int, operation)
+CB_SYSCALL1(int, fsync, -1, int, fd)
+CB_SYSCALL1(int, fdatasync, -1, int, fd)
+CB_SYSCALL2(int, truncate, -1, const char*, path, off_t, length)
+CB_SYSCALL2(int, ftruncate, -1, int, fd, off_t, length)
+
+CB_SYSCALL3(ssize_t, readv, -1, int, fd, const struct iovec*, iov, int, iovcnt)
+CB_SYSCALL3(ssize_t, writev, -1, int, fd, const struct iovec*, iov, int, iovcnt)
+CB_SYSCALL4(ssize_t, preadv, -1, int, fd, const struct iovec*, iov, int, iovcnt, off_t, offset)
+CB_SYSCALL4(ssize_t, pwritev, -1, int, fd, const struct iovec*, iov, int, iovcnt, off_t, offset)
+CB_SYSCALL5(ssize_t, preadv2, -1, int, fd, const struct iovec*, iov, int, iovcnt, off_t, offset, int, flags)
+CB_SYSCALL5(ssize_t, pwritev2, -1, int, fd, const struct iovec*, iov, int, iovcnt, off_t, offset, int, flags)
+
+
 
 
 
@@ -253,10 +264,22 @@ static const std::list<ns_elffuzz::hookProcInfo> s_syscall_hooks_info = {
     {"msgrcv", (const void*)cb_syscall_msgrcv},
     {"msgctl", (const void*)cb_syscall_msgctl},
 
+    {"fcntl", (const void*)cb_syscall_fcntl},
+    {"flock", (const void*)cb_syscall_flock},
+    {"fsync", (const void*)cb_syscall_fsync},
+    {"fdatasync", (const void*)cb_syscall_fdatasync},
+    {"truncate", (const void*)cb_syscall_truncate},
+    {"ftruncate", (const void*)cb_syscall_ftruncate},
+
+    {"readv", (const void*)cb_syscall_readv},
+    {"writev", (const void*)cb_syscall_writev},
+    {"preadv", (const void*)cb_syscall_preadv},
+    {"pwritev", (const void*)cb_syscall_pwritev},
+    {"preadv2", (const void*)cb_syscall_preadv2},
+    {"pwritev2", (const void*)cb_syscall_pwritev2},
+
 };
-// readv, preadv, preadv2 and writev ...
 // epoll
-// fseek
 // syscall
 
 
@@ -274,9 +297,11 @@ static const std::list<ns_elffuzz::hookProcInfo> s_syscall_hooks_info = {
     CB6(libc, type, name, res, type1, arg1, type2, arg2, type3, arg3, type4, arg4, type5, arg5, type6, arg6)
 
 
+/*
 CB_LIBC1(void*, malloc, NULL, size_t, size)
 CB_LIBC2(void*, calloc, NULL, size_t, nmemb, size_t, size)
 CB_LIBC2(void*, realloc, NULL, void*, ptr, size_t, size)
+*/
 
 CB_LIBC2(FILE*, fopen, NULL, const char*, path, const char*, mode)
 CB_LIBC4(size_t, fread, 0, void*, ptr, size_t, size, size_t, nmemb, FILE*, stream)
@@ -288,9 +313,11 @@ CB_LIBC2(const char*, strchr, NULL, const char*, s, int, c)
 
 
 static const std::list<ns_elffuzz::hookProcInfo> s_libc_hooks_info = {
+        /*
     {"malloc", (const void*)cb_libc_malloc},
     {"calloc", (const void*)cb_libc_calloc},
     {"realloc", (const void*)cb_libc_realloc},
+            */
 
     {"fopen", (const void*)cb_libc_fopen},
     {"fread", (const void*)cb_libc_fread},
