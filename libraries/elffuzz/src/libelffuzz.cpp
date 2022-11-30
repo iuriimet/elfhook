@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <linux/aio_abi.h>
-#include <linux/module.h>
+// #include <linux/module.h>
 #include <poll.h>
 #include <signal.h>
 #include <string.h>
