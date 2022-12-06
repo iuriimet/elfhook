@@ -109,15 +109,15 @@ CB_SYSCALL3(ssize_t, write, -1, int, fd, const void*, buf, size_t, count)
 CB_SYSCALL4(ssize_t, pread, -1, int, fd, void*, buf, size_t, count, off_t, offset)
 CB_SYSCALL4(ssize_t, pwrite, -1, int, fd, const void*, buf, size_t, count, off_t, offset)
 
-CB_SYSCALL2(int, stat, -1, const char*, path, struct stat*, buf)
-CB_SYSCALL3(int, __xstat, -1, int, ver, const char*, path, struct stat*, buf)
-CB_SYSCALL3(int, __xstat64, -1, int, ver, const char*, path, struct stat64*, buf)
-CB_SYSCALL2(int, fstat, -1, int, fd, struct stat*, buf)
-CB_SYSCALL3(int, __fxstat, -1, int, ver, int, fd, struct stat*, buf)
-CB_SYSCALL3(int, __fxstat64, -1, int, ver, int, fd, struct stat64*, buf)
-CB_SYSCALL2(int, lstat, -1, const char*, path, struct stat*, buf)
-CB_SYSCALL3(int, __lxstat, -1, int, ver, const char*, path, struct stat*, buf)
-CB_SYSCALL3(int, __lxstat64, -1, int, ver, const char*, path, struct stat64*, buf)
+//CB_SYSCALL2(int, stat, -1, const char*, path, struct stat*, buf)
+//CB_SYSCALL3(int, __xstat, -1, int, ver, const char*, path, struct stat*, buf)
+//CB_SYSCALL3(int, __xstat64, -1, int, ver, const char*, path, struct stat64*, buf)
+//CB_SYSCALL2(int, fstat, -1, int, fd, struct stat*, buf)
+//CB_SYSCALL3(int, __fxstat, -1, int, ver, int, fd, struct stat*, buf)
+//CB_SYSCALL3(int, __fxstat64, -1, int, ver, int, fd, struct stat64*, buf)
+//CB_SYSCALL2(int, lstat, -1, const char*, path, struct stat*, buf)
+//CB_SYSCALL3(int, __lxstat, -1, int, ver, const char*, path, struct stat*, buf)
+//CB_SYSCALL3(int, __lxstat64, -1, int, ver, const char*, path, struct stat64*, buf)
 
 CB_SYSCALL3(int, poll, -1, struct pollfd*, fds, nfds_t, nfds, int, timeout)
 CB_SYSCALL4(int, ppoll, -1, struct pollfd*, fds, nfds_t, nfds, const struct timespec*, tmo_p, const sigset_t*, sigmask)
@@ -199,15 +199,15 @@ static const std::list<ns_elffuzz::hookProcInfo> s_syscall_hooks_info = {
     {"pread", (const void*)cb_syscall_pread},
     {"pwrite", (const void*)cb_syscall_pwrite},
 
-    {"stat", (const void*)cb_syscall_stat},
-    {"__xstat", (const void*)cb_syscall___xstat},
-    {"__xstat64", (const void*)cb_syscall___xstat64},
-    {"fstat", (const void*)cb_syscall_fstat},
-    {"__fxstat", (const void*)cb_syscall___fxstat},
-    {"__fxstat64", (const void*)cb_syscall___fxstat64},
-    {"lstat", (const void*)cb_syscall_lstat},
-    {"__lxstat", (const void*)cb_syscall___lxstat},
-    {"__lxstat64", (const void*)cb_syscall___lxstat64},
+//    {"stat", (const void*)cb_syscall_stat},
+//    {"__xstat", (const void*)cb_syscall___xstat},
+//    {"__xstat64", (const void*)cb_syscall___xstat64},
+//    {"fstat", (const void*)cb_syscall_fstat},
+//    {"__fxstat", (const void*)cb_syscall___fxstat},
+//    {"__fxstat64", (const void*)cb_syscall___fxstat64},
+//    {"lstat", (const void*)cb_syscall_lstat},
+//    {"__lxstat", (const void*)cb_syscall___lxstat},
+//    {"__lxstat64", (const void*)cb_syscall___lxstat64},
 
     {"poll", (const void*)cb_syscall_poll},
     {"ppoll", (const void*)cb_syscall_ppoll},
@@ -308,7 +308,7 @@ CB_LIBC4(size_t, fread, 0, void*, ptr, size_t, size, size_t, nmemb, FILE*, strea
 CB_LIBC4(size_t, fwrite, 0, const void*, ptr, size_t, size, size_t, nmemb, FILE*, stream)
 CB_LIBC1(int, fgetc, EOF, FILE*, stream)
 CB_LIBC3(char*, fgets, NULL, char*, s, int, size, FILE*, stream)
-CB_LIBC1(char*, strdup, NULL, const char*, s)
+//CB_LIBC1(char*, strdup, NULL, const char*, s)
 CB_LIBC2(const char*, strchr, NULL, const char*, s, int, c)
 
 
@@ -324,7 +324,7 @@ static const std::list<ns_elffuzz::hookProcInfo> s_libc_hooks_info = {
     {"fwrite", (const void*)cb_libc_fwrite},
     {"fgetc", (const void*)cb_libc_fgetc},
     {"fgets", (const void*)cb_libc_fgets},
-    {"strdup", (const void*)cb_libc_strdup},
+//    {"strdup", (const void*)cb_libc_strdup},
     {"strchr", (const void*)cb_libc_strchr},
 };
 // ZZZ
