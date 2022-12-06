@@ -29,7 +29,7 @@ namespace ns_elffuzz {
 //    m_so_info = m_elf->soNames();
 //}
 
-static const char* s_skipped_so[] = {"ld-linux.so", "libdl.so", "librt.so", "libm.so", "libpthread.so", "libdlog.so", "libprotobuf.so"};
+static const char* s_skipped_so[] = {"ld-linux", "libdl.so", "librt.so", "libm.so", "libpthread.so", "libdlog.so", "libprotobuf.so"};
 
 ElfFuzz::ElfFuzz() :
     m_fuzz_so(""), m_fuzz_sym(""), m_elf(nullptr)
