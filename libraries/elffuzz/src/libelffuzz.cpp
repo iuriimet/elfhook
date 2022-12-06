@@ -301,31 +301,26 @@ static const std::list<ns_elffuzz::hookProcInfo> s_syscall_hooks_info = {
 CB_LIBC1(void*, malloc, NULL, size_t, size)
 CB_LIBC2(void*, calloc, NULL, size_t, nmemb, size_t, size)
 CB_LIBC2(void*, realloc, NULL, void*, ptr, size_t, size)
-*/
-
 CB_LIBC2(FILE*, fopen, NULL, const char*, path, const char*, mode)
 CB_LIBC4(size_t, fread, 0, void*, ptr, size_t, size, size_t, nmemb, FILE*, stream)
 CB_LIBC4(size_t, fwrite, 0, const void*, ptr, size_t, size, size_t, nmemb, FILE*, stream)
 CB_LIBC1(int, fgetc, EOF, FILE*, stream)
 CB_LIBC3(char*, fgets, NULL, char*, s, int, size, FILE*, stream)
-//CB_LIBC1(char*, strdup, NULL, const char*, s)
+CB_LIBC1(char*, strdup, NULL, const char*, s)
 CB_LIBC2(const char*, strchr, NULL, const char*, s, int, c)
-
+*/
 
 static const std::list<ns_elffuzz::hookProcInfo> s_libc_hooks_info = {
-        /*
-    {"malloc", (const void*)cb_libc_malloc},
-    {"calloc", (const void*)cb_libc_calloc},
-    {"realloc", (const void*)cb_libc_realloc},
-            */
-
-    {"fopen", (const void*)cb_libc_fopen},
-    {"fread", (const void*)cb_libc_fread},
-    {"fwrite", (const void*)cb_libc_fwrite},
-    {"fgetc", (const void*)cb_libc_fgetc},
-    {"fgets", (const void*)cb_libc_fgets},
+//    {"malloc", (const void*)cb_libc_malloc},
+//    {"calloc", (const void*)cb_libc_calloc},
+//    {"realloc", (const void*)cb_libc_realloc},
+//    {"fopen", (const void*)cb_libc_fopen},
+//    {"fread", (const void*)cb_libc_fread},
+//    {"fwrite", (const void*)cb_libc_fwrite},
+//    {"fgetc", (const void*)cb_libc_fgetc},
+//    {"fgets", (const void*)cb_libc_fgets},
 //    {"strdup", (const void*)cb_libc_strdup},
-    {"strchr", (const void*)cb_libc_strchr},
+//    {"strchr", (const void*)cb_libc_strchr},
 };
 // ZZZ
 // strtok
