@@ -361,6 +361,7 @@ elffuzz_t* elffuzz_init(void)
 void elffuzz_done(elffuzz_t* obj)
 {
     LOG_D("ELFFUZZ : elffuzz_done");
+    elffuzz_del_hooks(obj);
     if (obj) {
         if (obj->obj) {
             delete static_cast<ns_elffuzz::ElfFuzz*>(obj->obj);
